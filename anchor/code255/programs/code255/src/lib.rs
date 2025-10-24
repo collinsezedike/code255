@@ -31,4 +31,8 @@ pub mod code255 {
     pub fn submit_action(ctx: Context<SubmitAction>, action: Action) -> Result<()> {
         ctx.accounts.submit_action(action)
     }
+
+    pub fn resolve_action(ctx: Context<ResolveAction>, players: Vec<Pubkey>) -> Result<()> {
+        ctx.accounts.resolve_action(players)
+    }
 }

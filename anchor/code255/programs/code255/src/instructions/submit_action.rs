@@ -32,6 +32,10 @@ pub struct SubmitAction<'info> {
 impl<'info> SubmitAction<'info> {
     pub fn submit_action(&mut self, action: Action) -> Result<()> {
         require!(
+            !self.player.is_eliminated,
+            Code255Error::PlayerAlreadyEliminated
+        );
+        require!(
             self.player.action.is_none(),
             Code255Error::PlayerAlreadySubmittedAction
         );

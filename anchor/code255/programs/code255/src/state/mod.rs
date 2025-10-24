@@ -16,6 +16,7 @@ pub struct Game {
 #[derive(InitSpace)]
 pub struct Player {
     pub bump: u8,
+    pub is_eliminated: bool,
     pub card_number: Option<u16>,
     pub action: Option<Action>,
     #[max_len(16)]

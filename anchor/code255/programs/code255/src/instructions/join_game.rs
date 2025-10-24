@@ -38,6 +38,7 @@ impl<'info> JoinGame<'info> {
 
         self.player.set_inner(Player {
             bump: bumps.player,
+            is_eliminated: false,
             card_number: None,
             action: None,
             username,
