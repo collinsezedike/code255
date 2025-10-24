@@ -2,20 +2,17 @@ use anchor_lang::prelude::*;
 
 use crate::constants::{GAME_SEED, PLAYER_SEED};
 use crate::error::Code255Error;
-use crate::state::{Game, Player};
+use crate::state::{Action, Game, Player};
 
 #[derive(Accounts)]
-#[instruction(username: String)]
-pub struct JoinGame<'info> {
+pub struct SubmitAction<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
     #[account(
-        init,
-        payer = user,
-        seeds = [PLAYER_SEED, username.as_str().as_bytes(), game.key().as_ref()],
-        space = 8 + Player::INIT_SPACE,
-        bump
+        mut,
+        seeds = [PLAYER_SEED, player.username.as_str().as_bytes(), game.key().as_ref()],
+        bump = player.bump
     )]
     pub player: Account<'info, Player>,
 
@@ -32,20 +29,17 @@ pub struct JoinGame<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> JoinGame<'info> {
-    pub fn join_game(&mut self, username: String, bumps: &JoinGameBumps) -> Result<()> {
-        require!(self.game.round == 0, Code255Error::GameAlreadyStarted);
+impl<'info> SubmitAction<'info> {
+    pub fn submit_action(&mut self, action: Action) -> Result<()> {
+        require!(
+            self.player.action.is_none(),
+            Code255Error::PlayerAlreadySubmittedAction
+        );
 
-        self.player.set_inner(Player {
-            bump: bumps.player,
-            card_number: None,
-            action: None,
-            username,
-        });
-
-        self.game.active_players = self
+        self.player.action = Some(action);
+        self.game.submitted_actions = self
             .game
-            .active_players
+            .submitted_actions
             .checked_add(1)
             .ok_or(Code255Error::OutOfRange)?;
 

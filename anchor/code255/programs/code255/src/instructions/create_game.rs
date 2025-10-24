@@ -32,6 +32,7 @@ impl<'info> CreateGame<'info> {
             bump: bumps.game,
             round: 0,
             round_seed: None,
+            submitted_actions: 0,
             active_players,
             game_code,
             admin: self.admin.key(),

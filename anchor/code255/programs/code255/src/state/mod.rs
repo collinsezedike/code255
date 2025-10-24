@@ -7,6 +7,7 @@ pub struct Game {
     pub round: u8,
     pub round_seed: Option<u8>,
     pub active_players: u16,
+    pub submitted_actions: u16,
     pub game_code: u64,
     pub admin: Pubkey,
 }

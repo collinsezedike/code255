@@ -27,4 +27,8 @@ pub mod code255 {
     pub fn join_game(ctx: Context<JoinGame>, username: String) -> Result<()> {
         ctx.accounts.join_game(username, &ctx.bumps)
     }
+
+    pub fn submit_action(ctx: Context<SubmitAction>, action: Action) -> Result<()> {
+        ctx.accounts.submit_action(action)
+    }
 }
