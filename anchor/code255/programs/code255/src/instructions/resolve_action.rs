@@ -63,16 +63,24 @@ impl<'info> ResolveAction<'info> {
                 let player_card_number = 1;
                 let target_card_number = 2; // Or 2 -1 if target forgave
                 if player_card_number >= target_card_number {
-                    target_account.is_eliminated = true;
+                    if !target_account.is_eliminated {
+                        target_account.is_eliminated = true;
+                        self.game.active_players = self
+                            .game
+                            .active_players
+                            .checked_sub(1)
+                            .ok_or(Code255Error::OutOfRange)?;
+                    }
+                } else {
+                    if !self.player.is_eliminated {
+                        self.player.is_eliminated = true;
+                        self.game.active_players = self
+                            .game
+                            .active_players
+                            .checked_sub(1)
+                            .ok_or(Code255Error::OutOfRange)?;
+                    }
                 }
-
-                self.player.is_eliminated = true;
-
-                self.game.active_players = self
-                    .game
-                    .active_players
-                    .checked_sub(1)
-                    .ok_or(Code255Error::OutOfRange)?;
             }
         }
 
