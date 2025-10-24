@@ -26,7 +26,7 @@ impl<'info> CreateGame<'info> {
         &mut self,
         game_code: u64,
         active_players: u16,
-        bumps: &CreateGameBumps
+        bumps: &CreateGameBumps,
     ) -> Result<()> {
         self.game.set_inner(Game {
             bump: bumps.game,
@@ -34,6 +34,7 @@ impl<'info> CreateGame<'info> {
             round_seed: None,
             active_players,
             game_code,
+            admin: self.admin.key(),
         });
 
         Ok(())

@@ -18,8 +18,13 @@ pub mod code255 {
     pub fn create_game(
         ctx: Context<CreateGame>,
         game_code: u64,
-        active_players: u16
+        active_players: u16,
     ) -> Result<()> {
-        ctx.accounts.create_game(game_code, active_players, &ctx.bumps)
+        ctx.accounts
+            .create_game(game_code, active_players, &ctx.bumps)
+    }
+
+    pub fn join_game(ctx: Context<JoinGame>, username: String) -> Result<()> {
+        ctx.accounts.join_game(username, &ctx.bumps)
     }
 }
