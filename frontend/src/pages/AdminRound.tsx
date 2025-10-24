@@ -97,7 +97,7 @@ export const AdminRound: React.FC = () => {
 									status = "ELIMINATED";
 									statusColor = "text-red-500";
 								} else if (result.targetId) {
-									status = `SHOT ${target?.nickname.toUpperCase()}`;
+									status = `SHOT ${target?.username.toUpperCase()}`;
 									statusColor = "text-orange-500";
 								} else {
 									status = "SURVIVED";
@@ -112,7 +112,7 @@ export const AdminRound: React.FC = () => {
 										<div className="flex justify-between items-center">
 											<div>
 												<span className="text-xl font-bold">
-													{player.nickname.toUpperCase()}
+													{player.username.toUpperCase()}
 												</span>
 												<span className="text-sm text-green-600 ml-3">
 													CARD #{player.cardNumber}
@@ -214,7 +214,7 @@ export const AdminRound: React.FC = () => {
 									}`}
 								>
 									<div className="text-2xl font-bold mb-2">
-										{player.nickname.toUpperCase()}
+										{player.username.toUpperCase()}
 									</div>
 									<div className="text-sm text-green-400">
 										CARD #{player.cardNumber}
@@ -242,7 +242,7 @@ export const AdminRound: React.FC = () => {
 									className="border border-red-500 p-4 text-center text-red-500"
 								>
 									<div className="text-xl font-bold">
-										{player.nickname.toUpperCase()}
+										{player.username.toUpperCase()}
 									</div>
 									<div className="text-xs mt-1">
 										CARD #{player.cardNumber}

@@ -86,12 +86,12 @@ export const AdminLobby: React.FC = () => {
 									}}
 								>
 									<div className="text-3xl font-bold mb-2">
-										{player.nickname
+										{player.username
 											.substring(0, 2)
 											.toUpperCase()}
 									</div>
 									<div className="text-sm text-green-400">
-										{player.nickname}
+										{player.username}
 									</div>
 									<div className="text-xs text-green-600 mt-1">
 										CARD #{player.cardNumber}

@@ -45,7 +45,7 @@ export const PlayerShot: React.FC = () => {
 							FINAL STATS
 						</div>
 						<div className="text-xl text-green-400 mb-2">
-							{player.nickname.toUpperCase()}
+							{player.username.toUpperCase()}
 						</div>
 						<div className="text-lg text-green-600 mb-2">
 							CARD #{player.cardNumber}

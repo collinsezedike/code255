@@ -9,7 +9,7 @@ import { Terminal } from "lucide-react";
 export const PlayerJoin: React.FC = () => {
 	const [formattedCode, setFormattedCode] = useState("");
 	const [gameCode, setGameCode] = useState("");
-	const [nickname, setNickname] = useState("");
+	const [username, setNickname] = useState("");
 	const [error, setError] = useState("");
 	const [isConnecting, setIsConnecting] = useState(false);
 	const { gameState, addPlayer } = useGame();
@@ -36,8 +36,8 @@ export const PlayerJoin: React.FC = () => {
 			return;
 		}
 
-		if (!nickname.trim() || nickname.length < 3) {
-			setError("NICKNAME TOO SHORT");
+		if (!username.trim() || username.length < 3) {
+			setError("USERNAME TOO SHORT");
 			return;
 		}
 
@@ -54,7 +54,7 @@ export const PlayerJoin: React.FC = () => {
 		setIsConnecting(true);
 
 		setTimeout(() => {
-			const player = addPlayer(nickname);
+			const player = addPlayer(username);
 			if (player) {
 				localStorage.setItem("playerId", player.id);
 				setTimeout(() => {
@@ -138,11 +138,11 @@ export const PlayerJoin: React.FC = () => {
 
 						<div>
 							<label className="block text-sm mb-2 uppercase tracking-wider">
-								&gt; NICKNAME
+								&gt; USERNAME
 							</label>
 							<input
 								type="text"
-								value={nickname}
+								value={username}
 								onChange={(e) =>
 									setNickname(
 										e.target.value.slice(

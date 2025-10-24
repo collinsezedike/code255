@@ -3,7 +3,7 @@ import { GAMECODE_MAX_LENGTH, GAMEPLAY_TIME } from "../utils";
 
 export interface Player {
 	id: string;
-	nickname: string;
+	username: string;
 	cardNumber: number;
 	isAlive: boolean;
 }
@@ -38,7 +38,7 @@ interface GameState {
 interface GameContextType {
 	gameState: GameState;
 	generateGameCode: () => void;
-	addPlayer: (nickname: string) => Player | null;
+	addPlayer: (username: string) => Player | null;
 	startGame: () => void;
 	submitAction: (
 		playerId: string,
@@ -80,12 +80,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
 	}, []);
 
 	const addPlayer = useCallback(
-		(nickname: string): Player | null => {
+		(username: string): Player | null => {
 			if (gameState.gameStarted) return null;
 
 			const newPlayer: Player = {
 				id: Math.random().toString(36).substr(2, 9),
-				nickname,
+				username,
 				cardNumber: Math.floor(Math.random() * 256),
 				isAlive: true,
 			};

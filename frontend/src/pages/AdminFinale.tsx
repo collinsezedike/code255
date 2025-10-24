@@ -47,7 +47,7 @@ export const AdminFinale: React.FC = () => {
 							VICTOR
 						</div>
 						<div className="text-7xl font-bold mb-4 retro-flicker">
-							{winner.nickname.toUpperCase()}
+							{winner.username.toUpperCase()}
 						</div>
 						<div className="text-3xl text-green-400">
 							CARD #{winner.cardNumber}
@@ -75,7 +75,7 @@ export const AdminFinale: React.FC = () => {
 									</div>
 									<div>
 										<div className="text-2xl font-bold">
-											{player.nickname.toUpperCase()}
+											{player.username.toUpperCase()}
 										</div>
 										<div className="text-sm text-green-400">
 											CARD #{player.cardNumber}

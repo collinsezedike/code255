@@ -57,7 +57,7 @@ export const PlayerVictory: React.FC = () => {
 					<div className="border-t-2 border-green-500 border-b-2 py-8 my-8">
 						<div className="text-2xl mb-4">FINAL STATS</div>
 						<div className="text-4xl font-bold mb-3">
-							{player.nickname.toUpperCase()}
+							{player.username.toUpperCase()}
 						</div>
 						<div className="text-xl text-green-400 mb-2">
 							CARD #{player.cardNumber}

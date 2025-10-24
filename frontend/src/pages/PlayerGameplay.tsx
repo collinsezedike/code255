@@ -92,7 +92,7 @@ export const PlayerGameplay: React.FC = () => {
 						ROUND {gameState.currentRound}
 					</div>
 					<h1 className="text-4xl font-bold mb-2 tracking-wider">
-						{player.nickname.toUpperCase()}
+						{player.username.toUpperCase()}
 					</h1>
 				</div>
 
@@ -166,7 +166,7 @@ export const PlayerGameplay: React.FC = () => {
 										<div className="flex justify-between items-center">
 											<div>
 												<div className="text-2xl font-bold">
-													{p.nickname.toUpperCase()}
+													{p.username.toUpperCase()}
 												</div>
 												<div className="text-sm text-green-400">
 													CARD #{p.cardNumber}
