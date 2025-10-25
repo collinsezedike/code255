@@ -28,6 +28,18 @@ pub mod code255 {
         ctx.accounts.join_game(username, &ctx.bumps)
     }
 
+    pub fn request_round_seed(ctx: Context<RequestRoundSeed>) -> Result<()> {
+        ctx.accounts.request_round_seed()
+    }
+
+    pub fn store_round_seed(ctx: Context<StoreRoundSeed>, randomness: [u8; 32]) -> Result<()> {
+        ctx.accounts.store_round_seed(randomness)
+    }
+
+    pub fn start_round(ctx: Context<StartRound>, players: Vec<Pubkey>) -> Result<()> {
+        ctx.accounts.start_round(players)
+    }
+
     pub fn submit_action(ctx: Context<SubmitAction>, action: Action) -> Result<()> {
         ctx.accounts.submit_action(action)
     }

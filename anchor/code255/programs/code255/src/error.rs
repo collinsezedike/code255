@@ -20,9 +20,15 @@ pub enum Code255Error {
     #[msg("No player action was submitted")]
     PlayerActionNotSubmitted,
 
+    #[msg("Player pubkey was not found in the players list")]
+    PlayerPubkeyNotFound,
+
+    #[msg("Players hash does not match the round players hash")]
+    InvalidPlayersHash,
+
     #[msg("Target account not provided in the transaction context")]
     MissingTargetAccount,
 
     #[msg("Target account does not match the target shot")]
-    TargetAccountMismatch,
+    InvalidTargetAccount,
 }

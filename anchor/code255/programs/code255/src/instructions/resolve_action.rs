@@ -24,6 +24,7 @@ pub struct ResolveAction<'info> {
     pub target: Option<Account<'info, Player>>,
 
     #[account(
+        mut,
         seeds = [GAME_SEED, game.game_code.to_le_bytes().as_ref()],
         bump = game.bump,
         has_one = admin
@@ -34,7 +35,7 @@ pub struct ResolveAction<'info> {
 }
 
 impl<'info> ResolveAction<'info> {
-    pub fn resolve_action(&mut self, _players: Vec<Pubkey>) -> Result<()> {
+    pub fn resolve_action(&mut self, players: Vec<Pubkey>) -> Result<()> {
         require!(
             self.game.submitted_actions == self.game.active_players,
             Code255Error::GameRoundNotEnded
@@ -53,12 +54,21 @@ impl<'info> ResolveAction<'info> {
                 let mut target_account = self.target.clone().unwrap();
                 require!(
                     target_account.key() == target,
-                    Code255Error::TargetAccountMismatch
+                    Code255Error::InvalidTargetAccount
                 );
 
-                // Derive Card Number
-                let player_card_number = 1;
-                let target_card_number = 2; // Or 2 -1 if target forgave
+                // Verify the players hash
+                // require!(Hash(players) == self.game.players_hash, Code255Error::InvalidPlayersHash)
+
+                let player_card_number = 1 + players
+                    .iter()
+                    .position(|p| *p == self.player.key())
+                    .ok_or(Code255Error::PlayerPubkeyNotFound)?;
+                let target_card_number = 1 + players
+                    .iter()
+                    .position(|p| *p == target_account.key())
+                    .ok_or(Code255Error::PlayerPubkeyNotFound)?;
+
                 if player_card_number >= target_card_number {
                     if !target_account.is_eliminated {
                         target_account.is_eliminated = true;

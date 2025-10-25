@@ -20,6 +20,7 @@ pub struct JoinGame<'info> {
     pub player: Account<'info, Player>,
 
     #[account(
+        mut,
         seeds = [GAME_SEED, game.game_code.to_le_bytes().as_ref()],
         bump = game.bump,
         has_one = admin

@@ -31,10 +31,11 @@ impl<'info> CreateGame<'info> {
         self.game.set_inner(Game {
             bump: bumps.game,
             round: 0,
-            round_seed: None,
             submitted_actions: 0,
             active_players,
             game_code,
+            round_seed: None,
+            players_hash: None,
             admin: self.admin.key(),
         });
 
