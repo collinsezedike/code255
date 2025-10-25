@@ -32,7 +32,7 @@ impl<'info> RequestRoundSeed<'info> {
             oracle_queue: self.oracle_queue.key(),
             callback_program_id: crate::ID,
             callback_discriminator: crate::instruction::StoreRoundSeed::DISCRIMINATOR.to_vec(),
-            caller_seed: [self.game.round; 32],
+            caller_seed: [self.game.round + 1; 32], // The game round value will be updated in the start round instruction
             accounts_metas: Some(vec![SerializableAccountMeta {
                 pubkey: self.game.key(),
                 is_signer: false,

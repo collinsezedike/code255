@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::GAME_SEED;
+use crate::error::Code255Error;
 use crate::state::Game;
+use crate::utils::hash_players;
 
 #[derive(Accounts)]
 pub struct StartRound<'info> {
@@ -18,9 +20,13 @@ pub struct StartRound<'info> {
 }
 
 impl<'info> StartRound<'info> {
-    pub fn start_round(&mut self, _players: Vec<Pubkey>) -> Result<()> {
-        // Hash players list
-        // Store it in the self.game.players_hash
+    pub fn start_round(&mut self, players: Vec<Pubkey>) -> Result<()> {
+        self.game.players_hash = Some(hash_players(&players));
+        self.game.round = self
+            .game
+            .round
+            .checked_add(1)
+            .ok_or(Code255Error::OutOfRange)?;
         Ok(())
     }
 }
