@@ -7,7 +7,7 @@ use crate::state::{Action, Game, Player};
 #[derive(Accounts)]
 pub struct SubmitAction<'info> {
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub admin: Signer<'info>,
 
     #[account(
         mut,
@@ -22,9 +22,6 @@ pub struct SubmitAction<'info> {
         has_one = admin
     )]
     pub game: Account<'info, Game>,
-
-    /// CHECK: This is the game admin and is verified in the game account
-    pub admin: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }

@@ -8,11 +8,11 @@ use crate::state::{Game, Player};
 #[instruction(username: String)]
 pub struct JoinGame<'info> {
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub admin: Signer<'info>,
 
     #[account(
         init,
-        payer = user,
+        payer = admin,
         seeds = [PLAYER_SEED, username.as_str().as_bytes(), game.key().as_ref()],
         space = 8 + Player::INIT_SPACE,
         bump
@@ -25,9 +25,6 @@ pub struct JoinGame<'info> {
         has_one = admin
     )]
     pub game: Account<'info, Game>,
-
-    /// CHECK: This is the game admin and is verified in the game account
-    pub admin: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }
