@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import { RetroCard } from "../components/RetroCard";
 import { Timer, Target, Shield } from "lucide-react";
-import { GAMEPLAY_TIME } from "../utils";
+import { GAMEPLAY_TIME } from "../lib/config";
 
 export const AdminRound: React.FC = () => {
 	const { gameState, processRound } = useGame();

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
+import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
-import { GAMECODE_MAX_LENGTH, NICKNAME_MAX_LENGTH } from "../utils";
+import { GAMECODE_MAX_LENGTH, NICKNAME_MAX_LENGTH } from "../lib/config";
 import { Terminal } from "lucide-react";
 
 export const PlayerJoin: React.FC = () => {
@@ -13,6 +14,7 @@ export const PlayerJoin: React.FC = () => {
 	const [error, setError] = useState("");
 	const [isConnecting, setIsConnecting] = useState(false);
 	const { gameState, addPlayer } = useGame();
+	const { connect } = useSocket();
 	const navigate = useNavigate();
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +59,7 @@ export const PlayerJoin: React.FC = () => {
 			const player = addPlayer(username);
 			if (player) {
 				localStorage.setItem("playerId", player.id);
+				connect("player", username);
 				setTimeout(() => {
 					navigate("/gameplay");
 				}, 1500);

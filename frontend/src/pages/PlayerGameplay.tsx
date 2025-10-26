@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
-import { GAMEPLAY_TIME } from "../utils";
+import { GAMEPLAY_TIME } from "../lib/config";
 import { Target, SkipForward, Clock, Crosshair } from "lucide-react";
 
 export const PlayerGameplay: React.FC = () => {

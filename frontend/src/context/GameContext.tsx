@@ -1,39 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { GAMECODE_MAX_LENGTH, GAMEPLAY_TIME } from "../utils";
-
-export interface Player {
-	id: string;
-	username: string;
-	cardNumber: number;
-	isAlive: boolean;
-}
-
-export interface GameAction {
-	playerId: string;
-	targetId: string | null;
-	skipped: boolean;
-}
-
-export interface RoundResult {
-	playerId: string;
-	targetId: string | null;
-	wasShot: boolean;
-	backfired: boolean;
-	skipped: boolean;
-}
-
-interface GameState {
-	gameCode: string;
-	players: Player[];
-	currentRound: number;
-	gameStarted: boolean;
-	roundInProgress: boolean;
-	roundResults: RoundResult[];
-	gameEnded: boolean;
-	winner: Player | null;
-	actions: Map<string, GameAction>;
-	roundTimer: number;
-}
+import { GAMECODE_MAX_LENGTH, GAMEPLAY_TIME } from "../lib/config";
+import { GameState, Player, RoundResult } from "../lib/types";
 
 interface GameContextType {
 	gameState: GameState;
@@ -54,7 +21,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const initialState: GameState = {
-	gameCode: "",
+	gameCode: "22334455",
 	players: [],
 	currentRound: 0,
 	gameStarted: false,
