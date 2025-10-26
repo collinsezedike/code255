@@ -22,17 +22,12 @@ pub struct CreateGame<'info> {
 }
 
 impl<'info> CreateGame<'info> {
-    pub fn create_game(
-        &mut self,
-        game_code: u64,
-        active_players: u16,
-        bumps: &CreateGameBumps,
-    ) -> Result<()> {
+    pub fn create_game(&mut self, game_code: u64, bumps: &CreateGameBumps) -> Result<()> {
         self.game.set_inner(Game {
             bump: bumps.game,
             round: 0,
             submitted_actions: 0,
-            active_players,
+            active_players: 0,
             game_code,
             round_seed: None,
             players_hash: None,

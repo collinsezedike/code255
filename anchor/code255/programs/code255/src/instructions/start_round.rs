@@ -21,7 +21,10 @@ pub struct StartRound<'info> {
 
 impl<'info> StartRound<'info> {
     pub fn start_round(&mut self, players: Vec<Pubkey>) -> Result<()> {
+        require!(players.len() > 1, Code255Error::NotEnoughPlayers);
         self.game.players_hash = Some(hash_players(&players));
+        self.game.active_players = players.len() as u16;
+        self.game.submitted_actions = 0;
         self.game.round = self
             .game
             .round

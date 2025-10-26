@@ -5,6 +5,9 @@ pub enum Code255Error {
     #[msg("The arithemetic operation resulted in an out-of-range value")]
     OutOfRange,
 
+    #[msg("Not enough players to start round")]
+    NotEnoughPlayers,
+
     #[msg("Game already started")]
     GameAlreadyStarted,
 
