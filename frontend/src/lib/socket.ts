@@ -19,7 +19,8 @@ class SocketClient {
 
 		this.socket.addEventListener("open", () => {
 			console.log(`${this.role} ${this.username} connected to webSocket`);
-			this.isConnected = this.socket?.readyState == 1 ? true : false;
+			this.isConnected =
+				this.socket?.readyState === WebSocket.OPEN ? true : false;
 
 			this.send({
 				role: this.role,
@@ -49,7 +50,7 @@ class SocketClient {
 	}
 
 	send(msg: SocketMessage) {
-		if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+		if (this.socket && this.isConnected) {
 			this.socket.send(JSON.stringify(msg));
 		} else {
 			console.warn("Socket not ready, message not sent");
