@@ -12,7 +12,11 @@
   "author": "Ezedike-egwom Collins",
   "license": "ISC",
   "devDependencies": {
+    "@types/ws": "^8.18.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
   }
 }
