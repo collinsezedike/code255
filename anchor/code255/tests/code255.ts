@@ -12,7 +12,9 @@ describe("code255", () => {
 
 	let admin: anchor.web3.Keypair;
 	let game: anchor.web3.PublicKey;
+	let player: anchor.web3.PublicKey;
 
+	const playerUsername = "player_username";
 	const gameCode = new anchor.BN(Math.floor(Math.random() * 9e7) + 1e7);
 
 	before(async () => {
@@ -22,9 +24,18 @@ describe("code255", () => {
 			[Buffer.from("game"), gameCode.toBuffer("le", 8)],
 			program.programId
 		);
+
+		[player] = anchor.web3.PublicKey.findProgramAddressSync(
+			[
+				Buffer.from("player"),
+				Buffer.from(playerUsername),
+				game.toBuffer(),
+			],
+			program.programId
+		);
 	});
 
-	it("Create game", async () => {
+	it("create game", async () => {
 		await program.methods
 			.createGame(gameCode)
 			.accountsStrict({
@@ -43,5 +54,24 @@ describe("code255", () => {
 		expect(gameAccount.round).to.equal(0);
 		expect(gameAccount.roundSeed).to.be.null;
 		expect(gameAccount.playersHash).to.be.null;
+	});
+
+	it("join game", async () => {
+		await program.methods
+			.joinGame(playerUsername)
+			.accountsStrict({
+				admin: admin.publicKey,
+				player,
+				game,
+				systemProgram: SYSTEM_PROGRAM_ID,
+			})
+			.signers([admin])
+			.rpc();
+
+		const playerAccount = await program.account.player.fetch(player);
+		expect(playerAccount.username).to.equals(playerUsername);
+		expect(playerAccount.isEliminated).to.be.false;
+		expect(playerAccount.action).to.be.null;
+		expect(playerAccount.cardNumber).to.be.null;
 	});
 });
