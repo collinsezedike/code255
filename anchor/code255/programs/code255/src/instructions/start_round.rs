@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::constants::GAME_SEED;
 use crate::error::Code255Error;
 use crate::state::Game;
-use crate::utils::hash_players;
+use crate::utils::hash_players_with_round_seed;
 
 #[derive(Accounts)]
 pub struct StartRound<'info> {
@@ -22,7 +22,10 @@ pub struct StartRound<'info> {
 impl<'info> StartRound<'info> {
     pub fn start_round(&mut self, players: Vec<Pubkey>) -> Result<()> {
         require!(players.len() > 1, Code255Error::NotEnoughPlayers);
-        self.game.players_hash = Some(hash_players(&players));
+        self.game.players_hash = Some(hash_players_with_round_seed(
+            &players,
+            &self.game.round_seed.unwrap(),
+        ));
         self.game.active_players = players.len() as u16;
         self.game.submitted_actions = 0;
         self.game.round = self
