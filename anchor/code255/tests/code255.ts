@@ -3,15 +3,16 @@ import { Program } from "@coral-xyz/anchor";
 import { Code255 } from "../target/types/code255";
 import { expect } from "chai";
 
+const SYSTEM_PROGRAM_ID = anchor.web3.SystemProgram.programId;
+
 describe("code255", () => {
 	anchor.setProvider(anchor.AnchorProvider.env());
 
 	const program = anchor.workspace.code255 as Program<Code255>;
 
-	const SYSTEM_PROGRAM_ID = anchor.web3.SystemProgram.programId;
-
 	let admin: anchor.web3.Keypair;
 	let game: anchor.web3.PublicKey;
+	let ephemeralGame: anchor.web3.PublicKey;
 	let player: anchor.web3.PublicKey;
 
 	const playerUsername = "player_username";
@@ -73,5 +74,37 @@ describe("code255", () => {
 		expect(playerAccount.isEliminated).to.be.false;
 		expect(playerAccount.action).to.be.null;
 		expect(playerAccount.cardNumber).to.be.null;
+	});
+
+	it("update round seed", async () => {
+		await program.methods
+			.updateRoundSeed()
+			.accountsStrict({
+				admin: admin.publicKey,
+				game,
+			})
+			.signers([admin])
+			.rpc();
+
+		const gameAccount = await program.account.game.fetch(game);
+		expect(gameAccount.roundSeed).to.not.be.null;
+	});
+
+	it("start round", async () => {
+		const players = [player, player, player];
+
+		await program.methods
+			.startRound(players)
+			.accountsStrict({
+				admin: admin.publicKey,
+				game,
+			})
+			.signers([admin])
+			.rpc();
+
+		const gameAccount = await program.account.game.fetch(game);
+		expect(gameAccount.activePlayers).to.equal(players.length);
+		expect(gameAccount.playersHash).to.not.be.null;
+		expect(gameAccount.round).to.equal(1);
 	});
 });
