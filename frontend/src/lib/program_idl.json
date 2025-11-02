@@ -1,0 +1,1055 @@
+{
+    "address": "AMp4gissUxPZdfWReixw6kUdmZmzDQtKwTcnE84dPTxa",
+    "metadata": {
+        "name": "code255",
+        "version": "0.1.0",
+        "spec": "0.1.0",
+        "description": "Created with Anchor"
+    },
+    "instructions": [
+        {
+            "name": "create_game",
+            "discriminator": [
+                124,
+                69,
+                75,
+                66,
+                184,
+                220,
+                72,
+                206
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "game_code"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "game_code",
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "delegate_game",
+            "discriminator": [
+                116,
+                183,
+                70,
+                107,
+                112,
+                223,
+                122,
+                210
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "validator",
+                    "optional": true
+                },
+                {
+                    "name": "buffer_game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    98,
+                                    117,
+                                    102,
+                                    102,
+                                    101,
+                                    114
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ],
+                        "program": {
+                            "kind": "const",
+                            "value": [
+                                139,
+                                14,
+                                3,
+                                111,
+                                194,
+                                181,
+                                15,
+                                196,
+                                211,
+                                195,
+                                20,
+                                137,
+                                97,
+                                68,
+                                160,
+                                247,
+                                231,
+                                48,
+                                210,
+                                93,
+                                112,
+                                110,
+                                44,
+                                244,
+                                95,
+                                38,
+                                180,
+                                36,
+                                48,
+                                73,
+                                96,
+                                15
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "delegation_record_game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    100,
+                                    101,
+                                    108,
+                                    101,
+                                    103,
+                                    97,
+                                    116,
+                                    105,
+                                    111,
+                                    110
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ],
+                        "program": {
+                            "kind": "account",
+                            "path": "delegation_program"
+                        }
+                    }
+                },
+                {
+                    "name": "delegation_metadata_game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    100,
+                                    101,
+                                    108,
+                                    101,
+                                    103,
+                                    97,
+                                    116,
+                                    105,
+                                    111,
+                                    110,
+                                    45,
+                                    109,
+                                    101,
+                                    116,
+                                    97,
+                                    100,
+                                    97,
+                                    116,
+                                    97
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ],
+                        "program": {
+                            "kind": "account",
+                            "path": "delegation_program"
+                        }
+                    }
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "game_code"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "owner_program",
+                    "address": "AMp4gissUxPZdfWReixw6kUdmZmzDQtKwTcnE84dPTxa"
+                },
+                {
+                    "name": "delegation_program",
+                    "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "game_code",
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "join_game",
+            "discriminator": [
+                107,
+                112,
+                18,
+                38,
+                56,
+                173,
+                60,
+                128
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "game"
+                    ]
+                },
+                {
+                    "name": "player",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    112,
+                                    108,
+                                    97,
+                                    121,
+                                    101,
+                                    114
+                                ]
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "username"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game.game_code",
+                                "account": "Game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "username",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "process_undelegation",
+            "discriminator": [
+                196,
+                28,
+                41,
+                206,
+                48,
+                37,
+                51,
+                167
+            ],
+            "accounts": [
+                {
+                    "name": "base_account",
+                    "writable": true
+                },
+                {
+                    "name": "buffer"
+                },
+                {
+                    "name": "payer",
+                    "writable": true
+                },
+                {
+                    "name": "system_program"
+                }
+            ],
+            "args": [
+                {
+                    "name": "account_seeds",
+                    "type": {
+                        "vec": "bytes"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "request_round_seed",
+            "discriminator": [
+                228,
+                76,
+                146,
+                186,
+                12,
+                30,
+                244,
+                166
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "game_code"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "oracle_queue",
+                    "writable": true,
+                    "address": "5hBR571xnXppuCPveTrctfTU7tJLSN94nq7kv7FRK5Tc"
+                },
+                {
+                    "name": "program_identity",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    105,
+                                    100,
+                                    101,
+                                    110,
+                                    116,
+                                    105,
+                                    116,
+                                    121
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "vrf_program",
+                    "address": "Vrf1RNUjXmQGjmQrQLvJHs9SNkvDJEsRVFPkfSQUwGz"
+                },
+                {
+                    "name": "slot_hashes",
+                    "address": "SysvarS1otHashes111111111111111111111111111"
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "_game_code",
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "resolve_action",
+            "discriminator": [
+                255,
+                71,
+                111,
+                208,
+                53,
+                160,
+                174,
+                28
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "game"
+                    ]
+                },
+                {
+                    "name": "player",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    112,
+                                    108,
+                                    97,
+                                    121,
+                                    101,
+                                    114
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "player.username",
+                                "account": "Player"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "target",
+                    "writable": true,
+                    "optional": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    112,
+                                    108,
+                                    97,
+                                    121,
+                                    101,
+                                    114
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "target.username",
+                                "account": "Player"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game.game_code",
+                                "account": "Game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "players",
+                    "type": {
+                        "vec": "pubkey"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "start_round",
+            "discriminator": [
+                144,
+                144,
+                43,
+                7,
+                193,
+                42,
+                217,
+                215
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "game"
+                    ]
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game.game_code",
+                                "account": "Game"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": [
+                {
+                    "name": "players",
+                    "type": {
+                        "vec": "pubkey"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "store_round_seed",
+            "discriminator": [
+                29,
+                30,
+                82,
+                60,
+                114,
+                70,
+                5,
+                146
+            ],
+            "accounts": [
+                {
+                    "name": "vrf_program_identity",
+                    "docs": [
+                        "This check ensure that the vrf_program_identity (which is a PDA) is a signer",
+                        "enforcing the callback is executed by the VRF program through CPI"
+                    ],
+                    "signer": true,
+                    "address": "9irBy75QS2BN81FUgXuHcjqceJJRuc9oDkAe8TKVvvAw"
+                },
+                {
+                    "name": "game",
+                    "writable": true
+                }
+            ],
+            "args": [
+                {
+                    "name": "randomness",
+                    "type": {
+                        "array": [
+                            "u8",
+                            32
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "submit_action",
+            "discriminator": [
+                222,
+                59,
+                32,
+                151,
+                194,
+                137,
+                175,
+                150
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "game"
+                    ]
+                },
+                {
+                    "name": "player",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    112,
+                                    108,
+                                    97,
+                                    121,
+                                    101,
+                                    114
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "player.username",
+                                "account": "Player"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game.game_code",
+                                "account": "Game"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "action",
+                    "type": {
+                        "defined": {
+                            "name": "Action"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "undelegate",
+            "discriminator": [
+                131,
+                148,
+                180,
+                198,
+                91,
+                104,
+                42,
+                238
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "game_code"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "magic_program",
+                    "address": "Magic11111111111111111111111111111111111111"
+                },
+                {
+                    "name": "magic_context",
+                    "writable": true,
+                    "address": "MagicContext1111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "_game_code",
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "update_round_seed",
+            "discriminator": [
+                129,
+                210,
+                114,
+                50,
+                42,
+                229,
+                5,
+                168
+            ],
+            "accounts": [
+                {
+                    "name": "admin",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "game"
+                    ]
+                },
+                {
+                    "name": "game",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    103,
+                                    97,
+                                    109,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "game.game_code",
+                                "account": "Game"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": []
+        }
+    ],
+    "accounts": [
+        {
+            "name": "Game",
+            "discriminator": [
+                27,
+                90,
+                166,
+                125,
+                74,
+                100,
+                121,
+                18
+            ]
+        },
+        {
+            "name": "Player",
+            "discriminator": [
+                205,
+                222,
+                112,
+                7,
+                165,
+                155,
+                206,
+                218
+            ]
+        }
+    ],
+    "errors": [
+        {
+            "code": 6000,
+            "name": "OutOfRange",
+            "msg": "The arithemetic operation resulted in an out-of-range value"
+        },
+        {
+            "code": 6001,
+            "name": "NotEnoughPlayers",
+            "msg": "Not enough players to start round"
+        },
+        {
+            "code": 6002,
+            "name": "GameAlreadyStarted",
+            "msg": "Game already started"
+        },
+        {
+            "code": 6003,
+            "name": "GameRoundNotEnded",
+            "msg": "Game round has not ended"
+        },
+        {
+            "code": 6004,
+            "name": "PlayerAlreadySubmittedAction",
+            "msg": "Player already submitted an action"
+        },
+        {
+            "code": 6005,
+            "name": "PlayerAlreadyEliminated",
+            "msg": "Player has already been eliminated"
+        },
+        {
+            "code": 6006,
+            "name": "PlayerActionNotSubmitted",
+            "msg": "No player action was submitted"
+        },
+        {
+            "code": 6007,
+            "name": "PlayerPubkeyNotFound",
+            "msg": "Player pubkey was not found in the players list"
+        },
+        {
+            "code": 6008,
+            "name": "InvalidPlayersHash",
+            "msg": "Players hash does not match the round players hash"
+        },
+        {
+            "code": 6009,
+            "name": "MissingTargetAccount",
+            "msg": "Target account not provided in the transaction context"
+        },
+        {
+            "code": 6010,
+            "name": "InvalidTargetAccount",
+            "msg": "Target account does not match the target shot"
+        }
+    ],
+    "types": [
+        {
+            "name": "Action",
+            "type": {
+                "kind": "enum",
+                "variants": [
+                    {
+                        "name": "Shoot",
+                        "fields": [
+                            "pubkey"
+                        ]
+                    },
+                    {
+                        "name": "Forgive"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Game",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "bump",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "round",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "active_players",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "submitted_actions",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "game_code",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "round_seed",
+                        "type": {
+                            "option": {
+                                "array": [
+                                    "u8",
+                                    32
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "players_hash",
+                        "type": {
+                            "option": {
+                                "array": [
+                                    "u8",
+                                    32
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "admin",
+                        "type": "pubkey"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Player",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "bump",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "is_eliminated",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "card_number",
+                        "type": {
+                            "option": "u16"
+                        }
+                    },
+                    {
+                        "name": "action",
+                        "type": {
+                            "option": {
+                                "defined": {
+                                    "name": "Action"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "username",
+                        "type": "string"
+                    }
+                ]
+            }
+        }
+    ],
+    "constants": [
+        {
+            "name": "GAME_SEED",
+            "type": "bytes",
+            "value": "[103, 97, 109, 101]"
+        }
+    ]
+}

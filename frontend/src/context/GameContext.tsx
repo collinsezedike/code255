@@ -21,7 +21,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const initialState: GameState = {
-	gameCode: "22334455",
+	gameCode: "",
 	players: [],
 	currentRound: 0,
 	gameStarted: false,

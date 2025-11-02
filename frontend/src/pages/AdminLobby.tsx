@@ -1,27 +1,13 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
-import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { Users } from "lucide-react";
 
 export const AdminLobby: React.FC = () => {
-	const { gameState, generateGameCode, startGame } = useGame();
-	const { connect, isConnected } = useSocket();
+	const { gameState, startGame } = useGame();
 	const navigate = useNavigate();
-
-	useEffect(() => {
-		if (!isConnected) {
-			connect("admin", "");
-		}
-	}, [isConnected]);
-
-	useEffect(() => {
-		if (isConnected && !gameState.gameCode) {
-			generateGameCode();
-		}
-	}, [gameState.gameCode, generateGameCode]);
 
 	useEffect(() => {
 		if (gameState.gameStarted && gameState.roundInProgress) {
