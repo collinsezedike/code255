@@ -4,10 +4,24 @@ import { useGame } from "../context/GameContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { Users } from "lucide-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useSocket } from "../context/SocketContext";
 
 export const AdminLobby: React.FC = () => {
 	const { gameState, startGame } = useGame();
 	const navigate = useNavigate();
+	const { setVisible } = useWalletModal();
+	const { wallet } = useWallet();
+	const { socketConnect, isSocketConnected } = useSocket();
+
+	if (!gameState.gameCode) navigate("/admin");
+
+	useEffect(() => {
+		if (!isSocketConnected) {
+			socketConnect("admin", "");
+		}
+	}, [isSocketConnected]);
 
 	useEffect(() => {
 		if (gameState.gameStarted && gameState.roundInProgress) {
@@ -38,81 +52,107 @@ export const AdminLobby: React.FC = () => {
 						ADMIN CONTROL CENTER
 					</div>
 					<div className="text-sm text-green-600">
-						[SYSTEM INITIALIZED]
+						[GAME INITIALIZED]
 					</div>
 				</div>
 
-				<RetroCard className="mb-8" glow>
-					<div className="text-center">
-						<div className="text-xl mb-2">GAME CODE</div>
-						<div className="text-7xl font-bold tracking-widest my-6 retro-flicker">
-							{formatGameCode(gameState.gameCode)}
-						</div>
-						<div className="text-sm text-green-400">
-							SHARE THIS CODE WITH PLAYERS
-						</div>
-					</div>
-				</RetroCard>
-
-				<RetroCard className="mb-8">
-					<div className="flex items-center gap-3 mb-4 pb-4 border-b-2 border-green-500">
-						<Users className="w-6 h-6" />
-						<h2 className="text-2xl uppercase">
-							CONNECTED PLAYERS [{gameState.players.length}]
-						</h2>
-					</div>
-
-					{gameState.players.length === 0 ? (
-						<div className="text-center py-12 text-green-600">
-							<div className="text-xl mb-2">
-								WAITING FOR PLAYERS
-								<div className="animate-pulse">...</div>
-							</div>
-						</div>
-					) : (
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-							{gameState.players.map((player, index) => (
-								<div
-									key={player.id}
-									className="border border-green-500 p-4 text-center slide-in"
-									style={{
-										animationDelay: `${index * 100}ms`,
-									}}
+				{!wallet && (
+					<RetroCard glow className="py-16">
+						<div className="space-y-6 text-center">
+							<>
+								<div className="text-xl mb-4 tracking-wider">
+									ESTABLISH SECURE LINK
+								</div>
+								<RetroButton
+									onClick={() => setVisible(true)}
+									variant="primary"
+									className="text-xl px-10 py-4"
 								>
-									<div className="text-3xl font-bold mb-2">
-										{player.username
-											.substring(0, 2)
-											.toUpperCase()}
-									</div>
-									<div className="text-sm text-green-400">
-										{player.username}
-									</div>
-									<div className="text-xs text-green-600 mt-1">
-										CARD #{player.cardNumber}
+									CONNECT WALLET
+								</RetroButton>
+							</>
+						</div>
+					</RetroCard>
+				)}
+
+				{wallet && (
+					<>
+						<RetroCard className="mb-8" glow>
+							<div className="text-center">
+								<div className="text-xl mb-2">GAME CODE</div>
+								<div className="text-7xl font-bold tracking-widest my-6 retro-flicker">
+									{formatGameCode(gameState.gameCode)}
+								</div>
+								<div className="text-sm text-green-400">
+									SHARE THIS CODE WITH PLAYERS
+								</div>
+							</div>
+						</RetroCard>
+
+						<RetroCard className="mb-8">
+							<div className="flex items-center gap-3 mb-4 pb-4 border-b-2 border-green-500">
+								<Users className="w-6 h-6" />
+								<h2 className="text-2xl uppercase">
+									CONNECTED PLAYERS [
+									{gameState.players.length}]
+								</h2>
+							</div>
+
+							{gameState.players.length === 0 ? (
+								<div className="text-center py-12 text-green-600">
+									<div className="text-xl mb-2">
+										WAITING FOR PLAYERS
+										<div className="animate-pulse">...</div>
 									</div>
 								</div>
-							))}
-						</div>
-					)}
-				</RetroCard>
+							) : (
+								<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+									{gameState.players.map((player, index) => (
+										<div
+											key={player.id}
+											className="border border-green-500 p-4 text-center slide-in"
+											style={{
+												animationDelay: `${
+													index * 100
+												}ms`,
+											}}
+										>
+											<div className="text-3xl font-bold mb-2">
+												{player.username
+													.substring(0, 2)
+													.toUpperCase()}
+											</div>
+											<div className="text-sm text-green-400">
+												{player.username}
+											</div>
+											<div className="text-xs text-green-600 mt-1">
+												CARD #{player.cardNumber}
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+						</RetroCard>
 
-				<div className="text-center">
-					<RetroButton
-						onClick={handleStartGame}
-						disabled={gameState.players.length < 2}
-						variant="primary"
-						className="text-2xl px-12 py-4"
-					>
-						{gameState.players.length < 2
-							? "WAITING FOR PLAYERS..."
-							: `START GAME [${gameState.players.length} PLAYERS]`}
-					</RetroButton>
-					{gameState.players.length < 2 && (
-						<div className="text-sm text-green-600 mt-4">
-							MINIMUM 2 PLAYERS REQUIRED
+						<div className="text-center">
+							<RetroButton
+								onClick={handleStartGame}
+								disabled={gameState.players.length < 2}
+								variant="primary"
+								className="text-2xl px-12 py-4"
+							>
+								{gameState.players.length < 2
+									? "WAITING FOR PLAYERS..."
+									: `START GAME [${gameState.players.length} PLAYERS]`}
+							</RetroButton>
+							{gameState.players.length < 2 && (
+								<div className="text-sm text-green-600 mt-4">
+									MINIMUM 2 PLAYERS REQUIRED
+								</div>
+							)}
 						</div>
-					)}
-				</div>
+					</>
+				)}
 			</div>
 		</div>
 	);
