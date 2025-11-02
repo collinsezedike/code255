@@ -4,17 +4,17 @@ import type { SocketMessage } from "../lib/types";
 
 interface SocketContextValue {
 	socket: ReturnType<typeof createSocket> | null;
-	isConnected: boolean;
+	isSocketConnected: boolean;
 	messages: SocketMessage[];
-	connect: (role: "admin" | "player", username: string) => void;
+	socketConnect: (role: "admin" | "player", username: string) => void;
 	send: (msg: SocketMessage) => void;
 }
 
 const SocketContext = createContext<SocketContextValue>({
 	socket: null,
-	isConnected: false,
+	isSocketConnected: false,
 	messages: [],
-	connect: () => {},
+	socketConnect: () => {},
 	send: () => {},
 });
 
@@ -30,13 +30,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
 	const [socket, setSocket] = useState<ReturnType<
 		typeof createSocket
 	> | null>(null);
-	const [isConnected, setIsConnected] = useState<boolean>(false);
+	const [isSocketConnected, setIsSocketConnected] = useState<boolean>(false);
 	const [messages, setMessages] = useState<SocketMessage[]>([]);
 
 	const connect = (role: "admin" | "player", username: string) => {
 		const client = createSocket(role, username);
 		client.connect();
-		setIsConnected(true);
+		setIsSocketConnected(true);
 		client.onMessage((msg) => setMessages((prev) => [...prev, msg]));
 		setSocket(client);
 	};
@@ -47,7 +47,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
 	return (
 		<SocketContext.Provider
-			value={{ socket, isConnected, messages, connect, send }}
+			value={{
+				socket,
+				isSocketConnected: isSocketConnected,
+				messages,
+				socketConnect: connect,
+				send,
+			}}
 		>
 			{children}
 		</SocketContext.Provider>

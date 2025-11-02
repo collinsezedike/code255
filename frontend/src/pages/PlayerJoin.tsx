@@ -14,7 +14,7 @@ export const PlayerJoin: React.FC = () => {
 	const [error, setError] = useState("");
 	const [isConnecting, setIsConnecting] = useState(false);
 	const { gameState, addPlayer } = useGame();
-	const { connect } = useSocket();
+	const { socketConnect } = useSocket();
 	const navigate = useNavigate();
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +59,7 @@ export const PlayerJoin: React.FC = () => {
 			const player = addPlayer(username);
 			if (player) {
 				localStorage.setItem("playerId", player.id);
-				connect("player", username);
+				socketConnect("player", username);
 				setTimeout(() => {
 					navigate("/gameplay");
 				}, 1500);

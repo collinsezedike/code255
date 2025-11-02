@@ -12,20 +12,20 @@ import { createGame } from "../lib/program_instructions";
 export const AdminCreate: React.FC = () => {
 	const { setVisible } = useWalletModal();
 	const { wallet, signTransaction } = useWallet();
-	const { connect, isConnected } = useSocket();
+	const { socketConnect, isSocketConnected } = useSocket();
 	const { generateGameCode, gameState } = useGame();
 	const navigate = useNavigate();
 
 	const [isCreating, setIsCreating] = useState(false);
 
 	useEffect(() => {
-		if (!isConnected) {
-			connect("admin", "");
+		if (!isSocketConnected) {
+			socketConnect("admin", "");
 		}
-	}, [isConnected]);
+	}, [isSocketConnected]);
 
 	useEffect(() => {
-		if (isConnected && !gameState.gameCode) {
+		if (isSocketConnected && !gameState.gameCode) {
 			generateGameCode();
 		}
 	}, [gameState.gameCode, generateGameCode]);
