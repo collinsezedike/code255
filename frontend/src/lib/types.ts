@@ -6,6 +6,11 @@ export interface SocketMessage {
 	content: string;
 }
 
+export enum AdminSocketResponse {
+	ROUND_STARTED = "Round has started",
+	ELIMINATED = "Player has been eliminated",
+}
+
 export interface Player {
 	id: string;
 	username: string;
@@ -29,6 +34,8 @@ export interface RoundResult {
 
 export interface GameState {
 	gameCode: string;
+	gameAddress: string;
+	adminAddress: string;
 	players: Player[];
 	currentRound: number;
 	gameStarted: boolean;

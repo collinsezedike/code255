@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { GAMECODE_MAX_LENGTH, GAMEPLAY_TIME } from "../lib/config";
+import { GAMEPLAY_TIME } from "../lib/config";
 import { GameState, Player, RoundResult } from "../lib/types";
 
 interface GameContextType {
 	gameState: GameState;
-	generateGameCode: () => void;
 	addPlayer: (username: string) => Player | null;
 	startGame: () => void;
 	submitAction: (
@@ -22,6 +21,8 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const initialState: GameState = {
 	gameCode: "",
+	gameAddress: "",
+	adminAddress: "",
 	players: [],
 	currentRound: 0,
 	gameStarted: false,
@@ -38,13 +39,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
 	const [gameState, setGameState] = useState<GameState>(initialState);
 
-	const generateGameCode = useCallback(() => {
-		const code = (
-			Math.floor(Math.random() * 9 * 10 ** (GAMECODE_MAX_LENGTH - 1)) +
-			1 * 10 ** (GAMECODE_MAX_LENGTH - 1)
-		).toString();
-		setGameState((prev) => ({ ...prev, gameCode: code }));
-	}, []);
+	// const generateGameCode = useCallback(() => {
+	// 	const code = (
+	// 		Math.floor(Math.random() * 9 * 10 ** (GAMECODE_MAX_LENGTH - 1)) +
+	// 		1 * 10 ** (GAMECODE_MAX_LENGTH - 1)
+	// 	).toString();
+	// 	setGameState((prev) => ({ ...prev, gameCode: code }));
+	// }, []);
 
 	const addPlayer = useCallback(
 		(username: string): Player | null => {
@@ -180,7 +181,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({
 
 	const value: GameContextType = {
 		gameState,
-		generateGameCode,
 		addPlayer,
 		startGame,
 		submitAction,

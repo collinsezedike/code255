@@ -43,6 +43,8 @@ class GameServer {
 			return;
 		}
 
+		console.log("msg: ", msg);
+
 		switch (msg.type) {
 			case "register":
 				this.handleRegister(socket, msg);
@@ -69,6 +71,7 @@ class GameServer {
 
 	/** Forward player message to admin */
 	private handlePlayerMessage(msg: Message) {
+		console.log("msg: ", msg);
 		if (!this.admin || this.admin.readyState !== WebSocket.OPEN) return;
 
 		this.send(this.admin, {

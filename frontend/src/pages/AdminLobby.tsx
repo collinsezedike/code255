@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
@@ -7,21 +7,44 @@ import { Users } from "lucide-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useSocket } from "../context/SocketContext";
+import { fetchGameAccountData } from "../lib/program_instructions";
 
 export const AdminLobby: React.FC = () => {
-	const { gameState, startGame } = useGame();
 	const navigate = useNavigate();
+	const { state } = useLocation();
 	const { setVisible } = useWalletModal();
 	const { wallet } = useWallet();
-	const { socketConnect, isSocketConnected } = useSocket();
+	const { gameState, startGame } = useGame();
+	const { isSocketConnected, socket, socketConnect, socketMessages } =
+		useSocket();
 
-	if (!gameState.gameCode) navigate("/admin");
+	useEffect(() => {
+		const fetchData = async () => {
+			await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait a while for the create game transaction to finalize
+			const gameAccountData = await fetchGameAccountData(state.gameCode);
+			if (!gameAccountData) navigate("/admin");
+		};
+
+		if (!state?.gameCode) navigate("/admin");
+		else fetchData();
+	}, []);
 
 	useEffect(() => {
 		if (!isSocketConnected) {
 			socketConnect("admin", "");
 		}
 	}, [isSocketConnected]);
+
+	useEffect(() => {
+		console.log(socketMessages);
+	}, [socketMessages]);
+
+	useEffect(() => {
+		console.log(socketMessages);
+		socket?.onMessage((msg) => {
+			console.log("msg: ", msg);
+		});
+	}, []);
 
 	useEffect(() => {
 		if (gameState.gameStarted && gameState.roundInProgress) {
@@ -81,7 +104,7 @@ export const AdminLobby: React.FC = () => {
 							<div className="text-center">
 								<div className="text-xl mb-2">GAME CODE</div>
 								<div className="text-7xl font-bold tracking-widest my-6 retro-flicker">
-									{formatGameCode(gameState.gameCode)}
+									{formatGameCode(state.gameCode)}
 								</div>
 								<div className="text-sm text-green-400">
 									SHARE THIS CODE WITH PLAYERS

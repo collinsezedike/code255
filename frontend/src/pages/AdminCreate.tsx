@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Terminal } from "lucide-react";
-import { useGame } from "../context/GameContext";
 import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { createGame } from "../lib/program_instructions";
+import { generateGameCode } from "../lib/util";
 
 export const AdminCreate: React.FC = () => {
 	const { setVisible } = useWalletModal();
 	const { wallet, signTransaction } = useWallet();
 	const { socketConnect, isSocketConnected } = useSocket();
-	const { generateGameCode, gameState } = useGame();
+	const { connection } = useConnection();
 	const navigate = useNavigate();
 
 	const [isCreating, setIsCreating] = useState(false);
@@ -23,12 +23,6 @@ export const AdminCreate: React.FC = () => {
 			socketConnect("admin", "");
 		}
 	}, [isSocketConnected]);
-
-	useEffect(() => {
-		if (isSocketConnected && !gameState.gameCode) {
-			generateGameCode();
-		}
-	}, [gameState.gameCode, generateGameCode]);
 
 	const handleCreateGame = async () => {
 		if (!wallet?.adapter.publicKey) {
@@ -42,19 +36,12 @@ export const AdminCreate: React.FC = () => {
 		}
 
 		setIsCreating(true);
-		generateGameCode();
-		const txData = await createGame(
-			gameState.gameCode,
-			wallet.adapter.publicKey.toString()
-		);
-		const signedTx = await signTransaction(txData.txHash);
-		await txData.connection.sendRawTransaction(signedTx.serialize());
+		const gameCode = generateGameCode();
+		const tx = await createGame(gameCode, wallet.adapter.publicKey);
+		const signedTx = await signTransaction(tx);
+		await connection.sendRawTransaction(signedTx.serialize());
 
-		// setTimeout(() => {
-		// 	setTimeout(() => {
-		navigate("/admin/lobby");
-		// 	}, 2000);
-		// }, 1000);
+		navigate("/admin/lobby", { state: { gameCode } });
 	};
 
 	if (isCreating) {

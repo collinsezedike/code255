@@ -3,6 +3,7 @@ import {
 	clusterApiUrl,
 	Connection,
 	PublicKey,
+	SystemProgram,
 	TransactionInstruction,
 	TransactionMessage,
 	VersionedTransaction,
@@ -11,7 +12,7 @@ import { Code255 } from "./program_types";
 import IDL from "./program_idl.json";
 import { RPC_URL } from "./config";
 
-const SYSTEM_PROGRAM_ID = anchor.web3.SystemProgram.programId;
+const SYSTEM_PROGRAM_ID = SystemProgram.programId;
 
 const connection = new Connection(RPC_URL || clusterApiUrl("devnet"), {
 	commitment: "confirmed",
@@ -19,20 +20,45 @@ const connection = new Connection(RPC_URL || clusterApiUrl("devnet"), {
 
 export const program = new anchor.Program<Code255>(IDL, { connection });
 
-const getGamePDA = (gameCode: anchor.BN): PublicKey => {
-	const [game] = anchor.web3.PublicKey.findProgramAddressSync(
+export const getGamePDA = (gameCode: anchor.BN): PublicKey => {
+	const [game] = PublicKey.findProgramAddressSync(
 		[Buffer.from("game"), gameCode.toBuffer("le", 8)],
 		program.programId
 	);
 	return game;
 };
 
-const getPlayerPDA = (playerUsername: string, game: PublicKey): PublicKey => {
-	const [player] = anchor.web3.PublicKey.findProgramAddressSync(
-		[Buffer.from("player"), Buffer.from(playerUsername), game.toBuffer()],
+export const getPlayerPDA = (username: string, game: PublicKey): PublicKey => {
+	const [player] = PublicKey.findProgramAddressSync(
+		[Buffer.from("player"), Buffer.from(username), game.toBuffer()],
 		program.programId
 	);
 	return player;
+};
+
+export const fetchGameAccountData = async (gameCode: string) => {
+	try {
+		const gameCodeBN = new anchor.BN(gameCode);
+		const accountAddress = getGamePDA(gameCodeBN);
+		const accountData = await program.account.game.fetch(accountAddress);
+		return { ...accountData, address: accountAddress };
+	} catch (error) {
+		console.log(error);
+		return null;
+	}
+};
+
+export const fetchPlayerAccountData = async (
+	username: string,
+	game: PublicKey
+) => {
+	try {
+		const accountAddress = getPlayerPDA(username, game);
+		const accountData = await program.account.player.fetch(accountAddress);
+		return { ...accountData, address: accountAddress };
+	} catch (error) {
+		return null;
+	}
 };
 
 const buildTransaction = async (
@@ -48,39 +74,36 @@ const buildTransaction = async (
 	return new VersionedTransaction(message);
 };
 
-export async function createGame(gameCode: string, admin: string) {
-	const adminPubKey = new PublicKey(admin);
+export const createGame = async (gameCode: string, admin: PublicKey) => {
 	const gameCodeBN = new anchor.BN(gameCode);
 	const game = getGamePDA(gameCodeBN);
 	const ix = await program.methods
 		.createGame(gameCodeBN)
 		.accountsStrict({
-			admin: adminPubKey,
+			admin,
 			game,
 			systemProgram: SYSTEM_PROGRAM_ID,
 		})
 		.instruction();
 
-	const txHash = await buildTransaction(adminPubKey, ix);
-	return { connection, txHash, gameAddress: game };
-}
+	return await buildTransaction(admin, ix);
+};
 
-export async function joinGame(
+export const joinGame = async (
 	playerUsername: string,
 	game: PublicKey,
 	admin: PublicKey
-) {
+) => {
 	const player = getPlayerPDA(playerUsername, game);
 	const ix = await program.methods
 		.joinGame(playerUsername)
 		.accountsStrict({
-			admin,
 			player,
+			admin,
 			game,
 			systemProgram: SYSTEM_PROGRAM_ID,
 		})
 		.instruction();
 
-	const txHash = await buildTransaction(admin, ix);
-	return { connection, txHash, playerAddress: player };
-}
+	return await buildTransaction(admin, ix);
+};

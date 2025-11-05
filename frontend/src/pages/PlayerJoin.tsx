@@ -1,20 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGame } from "../context/GameContext";
 import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { GAMECODE_MAX_LENGTH, NICKNAME_MAX_LENGTH } from "../lib/config";
 import { Terminal } from "lucide-react";
+import { fetchGameAccountData, joinGame } from "../lib/program_instructions";
+import { AdminSocketResponse } from "../lib/types";
 
 export const PlayerJoin: React.FC = () => {
 	const [formattedCode, setFormattedCode] = useState("");
 	const [gameCode, setGameCode] = useState("");
 	const [username, setNickname] = useState("");
 	const [error, setError] = useState("");
-	const [isConnecting, setIsConnecting] = useState(false);
-	const { gameState, addPlayer } = useGame();
-	const { socketConnect } = useSocket();
+	const [isJoining, setIsJoining] = useState(false);
+	const { socket, isSocketConnected, socketConnect, socketSend } =
+		useSocket();
 	const navigate = useNavigate();
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,13 +25,11 @@ export const PlayerJoin: React.FC = () => {
 		const visuallyFormattedCode =
 			finalCode.match(/.{1,4}/g)?.join("-") || "";
 
-		console.log(gameState.gameCode);
-
 		setFormattedCode(visuallyFormattedCode);
 		setGameCode(finalCode);
 	};
 
-	const handleJoin = () => {
+	const handleJoinGame = async () => {
 		setError("");
 
 		if (!gameCode.trim() || gameCode.length !== GAMECODE_MAX_LENGTH) {
@@ -43,34 +42,48 @@ export const PlayerJoin: React.FC = () => {
 			return;
 		}
 
-		if (gameCode !== gameState.gameCode) {
+		setIsJoining(true);
+
+		const gameAccountData = await fetchGameAccountData(gameCode);
+
+		if (!gameAccountData) {
 			setError("GAME CODE NOT FOUND");
+			setIsJoining(false);
 			return;
 		}
 
-		if (gameState.gameStarted) {
-			setError("GAME ALREADY IN PROGRESS");
-			return;
-		}
+		const tx = await joinGame(
+			username,
+			gameAccountData.address,
+			gameAccountData.admin
+		);
 
-		setIsConnecting(true);
+		socketConnect("player", username);
 
-		setTimeout(() => {
-			const player = addPlayer(username);
-			if (player) {
-				localStorage.setItem("playerId", player.id);
-				socketConnect("player", username);
-				setTimeout(() => {
-					navigate("/gameplay");
-				}, 1500);
-			} else {
-				setError("FAILED TO JOIN GAME");
-				setIsConnecting(false);
+		await new Promise((resolve) => setTimeout(resolve, 3000));
+
+		console.log("Client Socket: ", socket);
+
+		// Send the txHash to the admin to sign
+		socketSend({
+			role: "player",
+			sender: username,
+			recipient: "admin",
+			type: "player_message",
+			content: Buffer.from(tx.serialize()).toString("base64"),
+		});
+
+		socket?.onMessage((msg) => {
+			if (
+				msg.sender == "admin" &&
+				msg.content == AdminSocketResponse.ROUND_STARTED
+			) {
+				navigate("/gameplay");
 			}
-		}, 1000);
+		});
 	};
 
-	if (isConnecting) {
+	if (isJoining) {
 		return (
 			<div className="min-h-screen bg-black text-green-500 flex items-center justify-center p-8 font-mono">
 				<RetroCard className="text-center max-w-2xl w-full" glow>
@@ -169,7 +182,7 @@ export const PlayerJoin: React.FC = () => {
 						)}
 
 						<RetroButton
-							onClick={handleJoin}
+							onClick={handleJoinGame}
 							variant="primary"
 							className="w-full text-2xl py-4"
 						>
