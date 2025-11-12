@@ -3,9 +3,9 @@ import type { SocketMessage } from "./types";
 
 class SocketClient {
 	private socket: WebSocket | null = null;
-	private listeners: ((msg: SocketMessage) => void)[] = [];
 	private role: "admin" | "player";
 	private username: string;
+	public listeners: ((msg: SocketMessage) => void)[] = [];
 	public isConnected: boolean;
 
 	constructor(role: "admin" | "player", username: string) {

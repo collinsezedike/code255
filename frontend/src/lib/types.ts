@@ -1,3 +1,10 @@
+import { createSocket } from "./socket";
+
+export interface TransferredState {
+	gameCode: string,
+	socket: ReturnType<typeof createSocket>
+}
+
 export interface SocketMessage {
 	role: "admin" | "player";
 	type: "register" | "player_message" | "admin_message";
@@ -7,6 +14,7 @@ export interface SocketMessage {
 }
 
 export enum AdminSocketResponse {
+	ADMITTED = "Player has been admitted",
 	ROUND_STARTED = "Round has started",
 	ELIMINATED = "Player has been eliminated",
 }

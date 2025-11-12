@@ -6,22 +6,16 @@ import { RetroCard } from "../components/RetroCard";
 import { Users } from "lucide-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useSocket } from "../context/SocketContext";
 import { fetchGameAccountData } from "../lib/program_instructions";
+import { AdminSocketResponse, TransferredState } from "../lib/types";
+import { createSocket } from "../lib/socket";
 
 export const AdminLobby: React.FC = () => {
 	const navigate = useNavigate();
 	const { state } = useLocation();
 	const { setVisible } = useWalletModal();
 	const { wallet } = useWallet();
-	const { gameState, startGame } = useGame();
-	const {
-		isSocketConnected,
-		socket,
-		socketConnect,
-		socketMessages,
-		socketSend,
-	} = useSocket();
+	const { gameState } = useGame();
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -30,29 +24,31 @@ export const AdminLobby: React.FC = () => {
 			if (!gameAccountData) navigate("/admin");
 		};
 
-		if (!state?.gameCode) navigate("/admin");
-		else fetchData();
+		if (!state || !state.gameCode) navigate("/admin");
+		fetchData();
 	}, []);
 
+	let { gameCode, socket } = state as TransferredState;
+
+	if (!socket) socket = createSocket("admin", gameCode);
+
 	useEffect(() => {
-		if (!isSocketConnected) {
-			socketConnect("admin", state.gameCode);
-		}
-	}, [isSocketConnected]);
+		if (!socket.isConnected) socket.connect();
+	}, [socket.isConnected]);
 
 	useEffect(() => {
 		if (!socket) return;
 		socket.onMessage((msg) => {
 			console.log({ msg });
-			socketSend({
-				content: "Hello back",
+			socket.send({
+				content: AdminSocketResponse.ADMITTED,
 				recipient: msg.sender,
 				role: "admin",
-				sender: "22334455",
+				sender: gameCode,
 				type: "admin_message",
 			});
 		});
-	}, [socketMessages]);
+	}, []);
 
 	const formatGameCode = (code: string) => {
 		if (!code) return "####-####";
@@ -61,9 +57,11 @@ export const AdminLobby: React.FC = () => {
 	};
 
 	const handleStartGame = () => {
-		if (gameState.players.length >= 2) {
-			startGame();
-		}
+		// Fetch players list
+		// Update eound seed
+		// Start round
+		// Broadcast to players
+		// Navigate to next page
 	};
 
 	return (
