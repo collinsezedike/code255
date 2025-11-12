@@ -19,9 +19,7 @@ class SocketClient {
 
 		this.socket.addEventListener("open", () => {
 			console.log(`${this.role} ${this.username} connected to webSocket`);
-			this.isConnected =
-				this.socket?.readyState === WebSocket.OPEN ? true : false;
-
+			this.isConnected = this.socket?.readyState === WebSocket.OPEN;
 			this.send({
 				role: this.role,
 				type: "register",
