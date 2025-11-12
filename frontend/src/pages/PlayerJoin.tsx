@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../context/SocketContext";
+import { Terminal } from "lucide-react";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { GAMECODE_MAX_LENGTH, NICKNAME_MAX_LENGTH } from "../lib/config";
-import { Terminal } from "lucide-react";
 import { fetchGameAccountData, joinGame } from "../lib/program_instructions";
 import { AdminSocketResponse } from "../lib/types";
+import { createSocket } from "../lib/socket";
 
 export const PlayerJoin: React.FC = () => {
 	const [formattedCode, setFormattedCode] = useState("");
@@ -14,8 +14,6 @@ export const PlayerJoin: React.FC = () => {
 	const [username, setNickname] = useState("");
 	const [error, setError] = useState("");
 	const [isJoining, setIsJoining] = useState(false);
-	const { socket, isSocketConnected, socketConnect, socketSend } =
-		useSocket();
 	const navigate = useNavigate();
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,14 +56,24 @@ export const PlayerJoin: React.FC = () => {
 			gameAccountData.admin
 		);
 
-		socketConnect("player", username);
+		const socket = createSocket("player", username);
 
-		await new Promise((resolve) => setTimeout(resolve, 3000));
+		socket.connect();
 
-		console.log("Client Socket: ", socket);
+		// Wait up to 5 seconds, checking every 50ms
+		for (let i = 0; i < 100; i++) {
+			if (socket.isConnected) break;
+			await new Promise((resolve) => setTimeout(resolve, 50));
+		}
+
+		if (!socket.isConnected) {
+			setError("ERROR WHILE ESTABLISHING CONNECTION");
+			setIsJoining(false);
+			return;
+		}
 
 		// Send the txHash to the admin to sign
-		socketSend({
+		socket.send({
 			role: "player",
 			sender: username,
 			recipient: "admin",
@@ -73,7 +81,8 @@ export const PlayerJoin: React.FC = () => {
 			content: Buffer.from(tx.serialize()).toString("base64"),
 		});
 
-		socket?.onMessage((msg) => {
+		socket.onMessage((msg) => {
+			console.log(msg);
 			if (
 				msg.sender == "admin" &&
 				msg.content == AdminSocketResponse.ROUND_STARTED

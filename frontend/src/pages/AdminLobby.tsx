@@ -15,8 +15,13 @@ export const AdminLobby: React.FC = () => {
 	const { setVisible } = useWalletModal();
 	const { wallet } = useWallet();
 	const { gameState, startGame } = useGame();
-	const { isSocketConnected, socket, socketConnect, socketMessages } =
-		useSocket();
+	const {
+		isSocketConnected,
+		socket,
+		socketConnect,
+		socketMessages,
+		socketSend,
+	} = useSocket();
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -31,26 +36,23 @@ export const AdminLobby: React.FC = () => {
 
 	useEffect(() => {
 		if (!isSocketConnected) {
-			socketConnect("admin", "");
+			socketConnect("admin", state.gameCode);
 		}
 	}, [isSocketConnected]);
 
 	useEffect(() => {
-		console.log(socketMessages);
-	}, [socketMessages]);
-
-	useEffect(() => {
-		console.log(socketMessages);
-		socket?.onMessage((msg) => {
-			console.log("msg: ", msg);
+		if (!socket) return;
+		socket.onMessage((msg) => {
+			console.log({ msg });
+			socketSend({
+				content: "Hello back",
+				recipient: msg.sender,
+				role: "admin",
+				sender: "22334455",
+				type: "admin_message",
+			});
 		});
-	}, []);
-
-	useEffect(() => {
-		if (gameState.gameStarted && gameState.roundInProgress) {
-			navigate("/admin/round");
-		}
-	}, [gameState.gameStarted, gameState.roundInProgress, navigate]);
+	}, [socketMessages]);
 
 	const formatGameCode = (code: string) => {
 		if (!code) return "####-####";
