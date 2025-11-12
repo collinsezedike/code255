@@ -9,12 +9,14 @@ import { AdminSocketResponse } from "../lib/types";
 import { createSocket } from "../lib/socket";
 
 export const PlayerJoin: React.FC = () => {
+	const navigate = useNavigate();
+
 	const [formattedCode, setFormattedCode] = useState("");
 	const [gameCode, setGameCode] = useState("");
 	const [username, setNickname] = useState("");
 	const [error, setError] = useState("");
 	const [isJoining, setIsJoining] = useState(false);
-	const navigate = useNavigate();
+	const [isAdmitted, setIsAdmitted] = useState(true);
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const rawValue = e.target.value;
@@ -67,7 +69,7 @@ export const PlayerJoin: React.FC = () => {
 		}
 
 		if (!socket.isConnected) {
-			setError("ERROR WHILE ESTABLISHING CONNECTION");
+			setError("UNABLE TO ESTABLISH SOCKET CONNECTION");
 			setIsJoining(false);
 			return;
 		}
@@ -84,7 +86,22 @@ export const PlayerJoin: React.FC = () => {
 		socket.onMessage((msg) => {
 			console.log(msg);
 			if (
-				msg.sender == "admin" &&
+				msg.role == "admin" &&
+				msg.sender == gameCode &&
+				msg.recipient == username &&
+				msg.content == AdminSocketResponse.ADMITTED
+			) {
+				setIsJoining(false);
+				setIsAdmitted(true);
+			}
+		});
+
+		socket.onMessage((msg) => {
+			console.log(msg);
+			if (
+				msg.role == "admin" &&
+				msg.sender == gameCode &&
+				msg.recipient == username &&
 				msg.content == AdminSocketResponse.ROUND_STARTED
 			) {
 				navigate("/gameplay");
@@ -102,18 +119,57 @@ export const PlayerJoin: React.FC = () => {
 						ESTABLISHING SECURE LINK
 					</div>
 					<div className="text-sm text-green-600">
-						<div className="mb-2">
+						<div
+							className="mb-2 animate-pulse"
+							style={{ animationDelay: "0.3s" }}
+						>
 							&gt; VALIDATING CREDENTIALS...
 						</div>
-						<div className="mb-2">
+						<div
+							className="mb-2 animate-pulse"
+							style={{ animationDelay: "0.6s" }}
+						>
 							&gt; ALLOCATING CARD NUMBER...
 						</div>
-						<div className="mb-2">
+						<div
+							className="mb-2 animate-pulse"
+							style={{ animationDelay: "0.9s" }}
+						>
 							&gt; SYNCHRONIZING WITH HOST...
 						</div>
-						<div className="animate-pulse">
-							&gt; CONNECTION ESTABLISHED_
+					</div>
+				</RetroCard>
+			</div>
+		);
+	}
+
+	if (isAdmitted) {
+		return (
+			<div className="min-h-screen bg-black text-green-500 flex items-center justify-center p-8 font-mono">
+				<RetroCard className="text-center max-w-2xl w-full" glow>
+					<Terminal className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+					<div className="text-4xl font-bold mb-4">
+						ACCESS GRANTED
+					</div>
+
+					<div className="border border-green-500 p-4 mb-6 text-left">
+						<div className="mb-2">
+							&gt;{" "}
+							<span className="text-green-400">USERNAME:</span>{" "}
+							{username}
 						</div>
+						<div>
+							&gt;{" "}
+							<span className="text-green-400">GAME CODE:</span>{" "}
+							{formattedCode}
+						</div>
+					</div>
+
+					<div className="ext-sm text-green-700 mt-2 animate-pulse">
+						WAITING FOR ROUND TO START...
+					</div>
+					<div className="text-sm text-green-700 mt-2">
+						DO NOT CLOSE THIS TERMINAL
 					</div>
 				</RetroCard>
 			</div>
