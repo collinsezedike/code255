@@ -74,11 +74,7 @@ class GameServer {
 		console.log("msg: ", msg);
 		if (!this.admin || this.admin.readyState !== WebSocket.OPEN) return;
 
-		this.send(this.admin, {
-			type: "player_message",
-			from: msg.sender,
-			content: msg.content,
-		});
+		this.send(this.admin, msg);
 	}
 
 	/** Forward admin message to a specific player */
@@ -87,11 +83,7 @@ class GameServer {
 
 		const playerSocket = this.players.get(msg.recipient)!;
 		if (playerSocket.readyState === WebSocket.OPEN) {
-			this.send(playerSocket, {
-				type: "admin_message",
-				from: "admin",
-				content: msg.content,
-			});
+			this.send(playerSocket, msg);
 		}
 	}
 
