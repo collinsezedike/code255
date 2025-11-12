@@ -3,26 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Terminal } from "lucide-react";
-import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { createGame } from "../lib/program_instructions";
 import { generateGameCode } from "../lib/util";
+import { createSocket } from "../lib/socket";
 
 export const AdminCreate: React.FC = () => {
 	const { setVisible } = useWalletModal();
 	const { wallet, signTransaction } = useWallet();
-	const { socketConnect, isSocketConnected } = useSocket();
 	const { connection } = useConnection();
 	const navigate = useNavigate();
 
 	const [isCreating, setIsCreating] = useState(false);
+	const [error, setError] = useState("");
 
 	useEffect(() => {
-		if (!isSocketConnected) {
-			socketConnect("admin", "");
+		if (error) {
+			const timer = setTimeout(() => setError(""), 5000);
+			return () => clearTimeout(timer);
 		}
-	}, [isSocketConnected]);
+	}, [error]);
 
 	const handleCreateGame = async () => {
 		if (!wallet?.adapter.publicKey) {
@@ -31,17 +32,33 @@ export const AdminCreate: React.FC = () => {
 		}
 
 		if (!signTransaction) {
-			alert("Wallet does not support signing transactions!");
+			setError("WALLET DOES NOT SUPPORT SIGNING TRANSACTIONS");
 			return;
 		}
 
 		setIsCreating(true);
+
 		const gameCode = generateGameCode();
+
+		const socket = createSocket("admin", gameCode);
+		socket.connect();
+
+		for (let i = 0; i < 100; i++) {
+			if (socket.isConnected) break;
+			await new Promise((resolve) => setTimeout(resolve, 50));
+		}
+
+		if (!socket.isConnected) {
+			setError("UNABLE TO ESTABLISH SOCKET CONNECTION");
+			setIsCreating(false);
+			return;
+		}
+
 		const tx = await createGame(gameCode, wallet.adapter.publicKey);
 		const signedTx = await signTransaction(tx);
 		await connection.sendRawTransaction(signedTx.serialize());
 
-		navigate("/admin/lobby", { state: { gameCode } });
+		navigate("/admin/lobby", { state: { gameCode, socket } });
 	};
 
 	if (isCreating) {
@@ -94,6 +111,14 @@ export const AdminCreate: React.FC = () => {
 						[INITIATE GAME ENGINE]
 					</div>
 				</div>
+
+				{error && (
+					<div className="border-2 border-red-500 bg-red-950 p-4 text-center animate-pulse">
+						<div className="text-red-500 font-bold">
+							&gt; ERROR: {error}
+						</div>
+					</div>
+				)}
 
 				<RetroCard glow className="py-16">
 					<div className="space-y-6">
