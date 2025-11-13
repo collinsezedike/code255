@@ -16,7 +16,7 @@ export const PlayerJoin: React.FC = () => {
 	const [username, setNickname] = useState("");
 	const [error, setError] = useState("");
 	const [isJoining, setIsJoining] = useState(false);
-	const [isAdmitted, setIsAdmitted] = useState(true);
+	const [isAdmitted, setIsAdmitted] = useState(false);
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const rawValue = e.target.value;
@@ -94,10 +94,7 @@ export const PlayerJoin: React.FC = () => {
 				setIsJoining(false);
 				setIsAdmitted(true);
 			}
-		});
 
-		socket.onMessage((msg) => {
-			console.log(msg);
 			if (
 				msg.role == "admin" &&
 				msg.sender == gameCode &&
@@ -107,6 +104,10 @@ export const PlayerJoin: React.FC = () => {
 				navigate("/gameplay");
 			}
 		});
+
+		setError("UNABLE TO ESTABLISH SOCKET CONNECTION");
+		setIsJoining(false);
+		return;
 	};
 
 	if (isJoining) {

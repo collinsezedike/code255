@@ -10,11 +10,10 @@ import {
 } from "@solana/web3.js";
 import { Code255 } from "./program_types";
 import IDL from "./program_idl.json";
-import { RPC_URL } from "./config";
 
 const SYSTEM_PROGRAM_ID = SystemProgram.programId;
 
-const connection = new Connection(RPC_URL || clusterApiUrl("devnet"), {
+const connection = new Connection(clusterApiUrl("devnet"), {
 	commitment: "confirmed",
 });
 
@@ -61,17 +60,31 @@ export const fetchPlayerAccountData = async (
 	}
 };
 
+export const fetchAllPlayerAccounts = async () => {
+	return await program.account.player.all();
+};
+
 const buildTransaction = async (
 	feePayer: PublicKey,
-	instruction: TransactionInstruction
+	instructions: TransactionInstruction[]
 ): Promise<VersionedTransaction> => {
 	const latestBlockhash = await connection.getLatestBlockhash();
 	const message = new TransactionMessage({
+		instructions,
 		payerKey: feePayer,
-		instructions: [instruction],
 		recentBlockhash: latestBlockhash.blockhash,
 	}).compileToV0Message();
 	return new VersionedTransaction(message);
+};
+
+export const deserializeTransactionInstruction = (
+	txString: string
+): TransactionInstruction => {
+	const tx = VersionedTransaction.deserialize(
+		Buffer.from(txString, "base64")
+	);
+	const msg = TransactionMessage.decompile(tx.message);
+	return msg.instructions[0];
 };
 
 export const createGame = async (gameCode: string, admin: PublicKey) => {
@@ -86,7 +99,7 @@ export const createGame = async (gameCode: string, admin: PublicKey) => {
 		})
 		.instruction();
 
-	return await buildTransaction(admin, ix);
+	return await buildTransaction(admin, [ix]);
 };
 
 export const joinGame = async (
@@ -105,5 +118,12 @@ export const joinGame = async (
 		})
 		.instruction();
 
-	return await buildTransaction(admin, ix);
+	return await buildTransaction(admin, [ix]);
+};
+
+export const processJoinGameInstructions = async (
+	admin: PublicKey,
+	ixs: TransactionInstruction[]
+) => {
+	return await buildTransaction(admin, ixs);
 };

@@ -1,12 +1,17 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { Users } from "lucide-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { fetchGameAccountData } from "../lib/program_instructions";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+	deserializeTransactionInstruction,
+	fetchAllPlayerAccounts,
+	fetchGameAccountData,
+	processJoinGameInstructions,
+} from "../lib/program_instructions";
 import { AdminSocketResponse, TransferredState } from "../lib/types";
 import { createSocket } from "../lib/socket";
 
@@ -14,8 +19,20 @@ export const AdminLobby: React.FC = () => {
 	const navigate = useNavigate();
 	const { state } = useLocation();
 	const { setVisible } = useWalletModal();
-	const { wallet } = useWallet();
+	const { wallet, signTransaction } = useWallet();
+	const { connection } = useConnection();
 	const { gameState } = useGame();
+
+	const [error, setError] = useState("");
+
+	const joinInstructions: string[] = [];
+
+	useEffect(() => {
+		if (error) {
+			const timer = setTimeout(() => setError(""), 5000);
+			return () => clearTimeout(timer);
+		}
+	}, [error]);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -32,23 +49,20 @@ export const AdminLobby: React.FC = () => {
 
 	if (!socket) socket = createSocket("admin", gameCode);
 
+	socket.onMessage((msg) => {
+		joinInstructions.push(msg.content);
+		socket.send({
+			content: AdminSocketResponse.ADMITTED,
+			recipient: msg.sender,
+			role: "admin",
+			sender: gameCode,
+			type: "admin_message",
+		});
+	});
+
 	useEffect(() => {
 		if (!socket.isConnected) socket.connect();
 	}, [socket.isConnected]);
-
-	useEffect(() => {
-		if (!socket) return;
-		socket.onMessage((msg) => {
-			console.log({ msg });
-			socket.send({
-				content: AdminSocketResponse.ADMITTED,
-				recipient: msg.sender,
-				role: "admin",
-				sender: gameCode,
-				type: "admin_message",
-			});
-		});
-	}, []);
 
 	const formatGameCode = (code: string) => {
 		if (!code) return "####-####";
@@ -56,12 +70,53 @@ export const AdminLobby: React.FC = () => {
 		return cleaned.match(/.{1,4}/g)?.join("-") || "";
 	};
 
-	const handleStartGame = () => {
-		// Fetch players list
-		// Update eound seed
-		// Start round
-		// Broadcast to players
-		// Navigate to next page
+	const handleApproveJoinRequests = async () => {
+		if (!wallet?.adapter.publicKey) {
+			setVisible(true);
+			return;
+		}
+
+		if (!signTransaction) {
+			setError("WALLET DOES NOT SUPPORT SIGNING TRANSACTIONS");
+			return;
+		}
+
+		// Check if wallet address matches the game owner address
+		const gameAccountData = await fetchGameAccountData(gameCode);
+		if (gameAccountData!.admin != wallet.adapter.publicKey) {
+			setError("INVALID ADMIN WALLET");
+			return;
+		}
+
+		const tx = await processJoinGameInstructions(
+			wallet.adapter.publicKey,
+			joinInstructions.map((ix) => deserializeTransactionInstruction(ix))
+		);
+		const signedTx = await signTransaction(tx);
+		await connection.sendRawTransaction(signedTx.serialize());
+	};
+
+	const handleStartGame = async () => {
+		// 1. Fetch players list
+		const players = await fetchAllPlayerAccounts();
+
+		// 2. Update eound seed
+
+		// 3. Start round
+
+		// 4. Broadcast to players
+		// NOTE TO SELF: Find out how to wait for the user to sign
+		players.forEach((p) => {
+			socket.send({
+				content: AdminSocketResponse.ROUND_STARTED,
+				recipient: p.account.username,
+				role: "admin",
+				sender: gameCode,
+				type: "admin_message",
+			});
+		});
+
+		// 5. Navigate to next page
 	};
 
 	return (
@@ -78,6 +133,14 @@ export const AdminLobby: React.FC = () => {
 						[GAME INITIALIZED]
 					</div>
 				</div>
+
+				{error && (
+					<div className="border-2 border-red-500 bg-red-950 p-4 text-center animate-pulse">
+						<div className="text-red-500 font-bold">
+							&gt; ERROR: {error}
+						</div>
+					</div>
+				)}
 
 				{!wallet && (
 					<RetroCard glow className="py-16">
