@@ -27,7 +27,6 @@ export const AdminLobby: React.FC = () => {
 	const [players, setPlayers] = useState<any[]>([]);
 	const [admittedPlayersCount, setAdmittedPlayersCount] = useState(0);
 	const [joinInstructions, setJoinInstructions] = useState<string[]>([]);
-
 	const [gameAccountData, setGameAccountData] =
 		useState<Awaited<ReturnType<typeof fetchGameAccountData>>>(null);
 
@@ -97,16 +96,19 @@ export const AdminLobby: React.FC = () => {
 			wallet.adapter.publicKey,
 			joinInstructions
 		);
+
 		const signedTx = await signTransaction(tx);
 		const signature = await connection.sendRawTransaction(
 			signedTx.serialize()
 		);
-		const latestBlockhash = await connection.getLatestBlockhash();
-		await connection.confirmTransaction({
-			blockhash: latestBlockhash.blockhash,
-			lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-			signature: signature,
+		const confirmedTx = await connection.getTransaction(signature, {
+			commitment: "confirmed",
+			maxSupportedTransactionVersion: 0,
 		});
+		if (confirmedTx && confirmedTx.meta && confirmedTx.meta.err) {
+			setError(`TRANSACTION FAILED ${confirmedTx.meta.err}`);
+			return;
+		}
 
 		setAdmittedPlayersCount(admittedPlayersCount + joinInstructions.length);
 		setJoinInstructions([]); // Empty the array
