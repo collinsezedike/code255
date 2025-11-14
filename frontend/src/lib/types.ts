@@ -1,8 +1,8 @@
 import { createSocket } from "./socket";
 
 export interface TransferredState {
-	gameCode: string,
-	socket: ReturnType<typeof createSocket>
+	gameCode: string;
+	socket: ReturnType<typeof createSocket>;
 }
 
 export interface SocketMessage {

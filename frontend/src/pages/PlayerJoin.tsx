@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Terminal } from "lucide-react";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
-import { GAMECODE_MAX_LENGTH, NICKNAME_MAX_LENGTH } from "../lib/config";
+import {
+	GAMECODE_MAX_LENGTH,
+	NICKNAME_MAX_LENGTH as USERNAME_MAX_LENGTH,
+} from "../lib/config";
 import { fetchGameAccountData, joinGame } from "../lib/program_instructions";
 import { AdminSocketResponse } from "../lib/types";
 import { createSocket } from "../lib/socket";
@@ -13,7 +16,7 @@ export const PlayerJoin: React.FC = () => {
 
 	const [formattedCode, setFormattedCode] = useState("");
 	const [gameCode, setGameCode] = useState("");
-	const [username, setNickname] = useState("");
+	const [username, setUsername] = useState("");
 	const [error, setError] = useState("");
 	const [isJoining, setIsJoining] = useState(false);
 	const [isAdmitted, setIsAdmitted] = useState(false);
@@ -104,10 +107,6 @@ export const PlayerJoin: React.FC = () => {
 				navigate("/gameplay");
 			}
 		});
-
-		setError("UNABLE TO ESTABLISH SOCKET CONNECTION");
-		setIsJoining(false);
-		return;
 	};
 
 	if (isJoining) {
@@ -226,15 +225,14 @@ export const PlayerJoin: React.FC = () => {
 								type="text"
 								value={username}
 								onChange={(e) =>
-									setNickname(
-										e.target.value.slice(
-											0,
-											NICKNAME_MAX_LENGTH
-										)
+									setUsername(
+										e.target.value
+											.slice(0, USERNAME_MAX_LENGTH)
+											.toUpperCase()
 									)
 								}
 								placeholder="ENTER NAME"
-								maxLength={NICKNAME_MAX_LENGTH}
+								maxLength={USERNAME_MAX_LENGTH}
 								className="w-full bg-black border-2 border-green-500 text-green-500 text-2xl font-mono px-4 py-3 focus:outline-none focus:border-green-400 uppercase text-center"
 							/>
 						</div>

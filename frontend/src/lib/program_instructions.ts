@@ -77,7 +77,7 @@ const buildTransaction = async (
 	return new VersionedTransaction(message);
 };
 
-export const deserializeTransactionInstruction = (
+const deserializeTransactionInstruction = (
 	txString: string
 ): TransactionInstruction => {
 	const tx = VersionedTransaction.deserialize(
@@ -87,7 +87,20 @@ export const deserializeTransactionInstruction = (
 	return msg.instructions[0];
 };
 
-export const createGame = async (gameCode: string, admin: PublicKey) => {
+export const processJoinGameInstructions = async (
+	admin: PublicKey,
+	ixs: string[]
+): Promise<VersionedTransaction> => {
+	return await buildTransaction(
+		admin,
+		ixs.map((ix) => deserializeTransactionInstruction(ix))
+	);
+};
+
+export const createGame = async (
+	gameCode: string,
+	admin: PublicKey
+): Promise<VersionedTransaction> => {
 	const gameCodeBN = new anchor.BN(gameCode);
 	const game = getGamePDA(gameCodeBN);
 	const ix = await program.methods
@@ -106,7 +119,7 @@ export const joinGame = async (
 	playerUsername: string,
 	game: PublicKey,
 	admin: PublicKey
-) => {
+): Promise<VersionedTransaction> => {
 	const player = getPlayerPDA(playerUsername, game);
 	const ix = await program.methods
 		.joinGame(playerUsername)
@@ -121,9 +134,20 @@ export const joinGame = async (
 	return await buildTransaction(admin, [ix]);
 };
 
-export const processJoinGameInstructions = async (
-	admin: PublicKey,
-	ixs: TransactionInstruction[]
-) => {
-	return await buildTransaction(admin, ixs);
+export const startRound = async (
+	players: PublicKey[],
+	game: PublicKey,
+	admin: PublicKey
+): Promise<VersionedTransaction> => {
+	const updateRoundSeedIx = await program.methods
+		.updateRoundSeed()
+		.accountsStrict({ admin, game })
+		.instruction();
+
+	const startRoundIx = await program.methods
+		.startRound(players)
+		.accountsStrict({ admin, game })
+		.instruction();
+
+	return await buildTransaction(admin, [updateRoundSeedIx, startRoundIx]);
 };

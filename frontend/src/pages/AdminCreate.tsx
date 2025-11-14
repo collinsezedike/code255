@@ -56,7 +56,15 @@ export const AdminCreate: React.FC = () => {
 
 		const tx = await createGame(gameCode, wallet.adapter.publicKey);
 		const signedTx = await signTransaction(tx);
-		await connection.sendRawTransaction(signedTx.serialize());
+		const signature = await connection.sendRawTransaction(
+			signedTx.serialize()
+		);
+		const latestBlockhash = await connection.getLatestBlockhash();
+		await connection.confirmTransaction({
+			blockhash: latestBlockhash.blockhash,
+			lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+			signature: signature,
+		});
 
 		navigate("/admin/lobby", { state: { gameCode, socket } });
 	};
