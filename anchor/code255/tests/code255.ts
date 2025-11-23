@@ -12,7 +12,6 @@ describe("code255", () => {
 
 	let admin: anchor.web3.Keypair;
 	let game: anchor.web3.PublicKey;
-	let ephemeralGame: anchor.web3.PublicKey;
 	let player: anchor.web3.PublicKey;
 
 	const playerUsername = "player_username";
@@ -106,5 +105,44 @@ describe("code255", () => {
 		expect(gameAccount.activePlayers).to.equal(players.length);
 		expect(gameAccount.playersHash).to.not.be.null;
 		expect(gameAccount.round).to.equal(1);
+	});
+
+	it("update seed and start round", async () => {
+		const players = [player, player, player];
+
+		const updateRoundSeedIx = await program.methods
+			.updateRoundSeed()
+			.accountsStrict({ admin: admin.publicKey, game })
+			.instruction();
+
+		const startRoundIx = await program.methods
+			.startRound(players)
+			.accountsStrict({ admin: admin.publicKey, game })
+			.instruction();
+
+		const connection = anchor.getProvider().connection;
+		const latestBlockhash = await connection.getLatestBlockhash();
+
+		const message = new anchor.web3.TransactionMessage({
+			instructions: [updateRoundSeedIx, startRoundIx],
+			payerKey: admin.publicKey,
+			recentBlockhash: latestBlockhash.blockhash,
+		}).compileToV0Message();
+
+		const tx = new anchor.web3.VersionedTransaction(message).sign([admin]);
+		tx.sign([admin]);
+
+		const txHash = await connection.sendTransaction(tx);
+		await connection.confirmTransaction({
+			blockhash: latestBlockhash.blockhash,
+			lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+			signature: txHash,
+		});
+
+		const gameAccount = await program.account.game.fetch(game);
+		expect(gameAccount.roundSeed).to.not.be.null;
+		expect(gameAccount.activePlayers).to.equal(players.length);
+		expect(gameAccount.playersHash).to.not.be.null;
+		expect(gameAccount.round).to.equal(2);
 	});
 });
