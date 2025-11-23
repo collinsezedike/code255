@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useGame } from "../context/GameContext";
+import { Users } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
-import { Users } from "lucide-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { AdminSocketResponse } from "../lib/types";
 import {
 	fetchAllPlayerAccounts,
 	fetchGameAccountData,
 	processJoinGameInstructions,
 	startRound,
 } from "../lib/program_instructions";
-import { AdminSocketResponse, TransferredState } from "../lib/types";
-import { createSocket } from "../lib/socket";
 
 export const AdminLobby: React.FC = () => {
 	const navigate = useNavigate();
@@ -22,11 +22,15 @@ export const AdminLobby: React.FC = () => {
 	const { wallet, signTransaction } = useWallet();
 	const { connection } = useConnection();
 	const { gameState } = useGame();
+	const { isSocketConnected, socketConnect, socketMessages, socketSend } =
+		useSocket();
 
 	const [error, setError] = useState("");
-	const [players, setPlayers] = useState<any[]>([]);
+	const [players, setPlayers] = useState<{ username: string }[]>([]);
 	const [admittedPlayersCount, setAdmittedPlayersCount] = useState(0);
-	const [joinInstructions, setJoinInstructions] = useState<string[]>([]);
+	const [joinRequests, setJoinRequests] = useState<
+		{ username: string; tx: string }[]
+	>([]);
 	const [gameAccountData, setGameAccountData] =
 		useState<Awaited<ReturnType<typeof fetchGameAccountData>>>(null);
 
@@ -39,33 +43,34 @@ export const AdminLobby: React.FC = () => {
 
 	useEffect(() => {
 		const fetchData = async () => {
-			// NOTE TO SELF: Might no longer need to delay a bit since we're already confirming the transaction in the previous page
-			await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait a while for the create game transaction to finalize
 			const gameAccount = await fetchGameAccountData(state.gameCode);
 			if (!gameAccount) navigate("/admin");
 			else setGameAccountData(gameAccount);
 		};
 
-		if (!state || !state.gameCode) navigate("/admin");
-		fetchData();
-	}, []);
+		if (!state || !state.gameCode) {
+			navigate("/admin");
+			return;
+		} else fetchData();
+	}, [state, navigate]);
 
-	let { gameCode, socket } = state as TransferredState;
+	useEffect(() => {
+		if (!isSocketConnected) socketConnect("admin", state.gameCode);
+	}, [isSocketConnected, socketConnect]);
 
-	if (!socket) socket = createSocket("admin", gameCode);
-	if (!socket.isConnected) socket.connect();
+	useEffect(() => {
+		if (socketMessages.length === 0) return;
 
-	socket.onMessage((msg) => {
-		setJoinInstructions((prev) => [...prev, msg.content]);
-		setPlayers((prev) => [...prev, { username: msg.sender }]);
-		socket.send({
-			content: AdminSocketResponse.ADMITTED,
-			recipient: msg.sender,
-			role: "admin",
-			sender: gameCode,
-			type: "admin_message",
-		});
-	});
+		const latestMessage = socketMessages[socketMessages.length - 1];
+
+		if (latestMessage.recipient === state.gameCode) {
+			setJoinRequests((prev) => [
+				...prev,
+				{ username: latestMessage.sender, tx: latestMessage.content }, // Note: You need the actual TX hash here, likely in content
+			]);
+			setPlayers((prev) => [...prev, { username: latestMessage.sender }]);
+		}
+	}, [socketMessages]);
 
 	const formatGameCode = (code: string) => {
 		if (!code) return "####-####";
@@ -74,6 +79,10 @@ export const AdminLobby: React.FC = () => {
 	};
 
 	const handleApproveJoinRequests = async () => {
+		if (!gameAccountData) return navigate("/admin");
+
+		if (joinRequests.length === 0) return;
+
 		if (!wallet?.adapter.publicKey) {
 			setVisible(true);
 			return;
@@ -84,17 +93,18 @@ export const AdminLobby: React.FC = () => {
 			return;
 		}
 
-		if (!gameAccountData) return navigate("/admin");
-
 		// Check if wallet address matches the game owner address
-		if (gameAccountData.admin != wallet.adapter.publicKey) {
+		if (
+			gameAccountData.admin.toString() !=
+			wallet.adapter.publicKey.toString()
+		) {
 			setError("INVALID ADMIN WALLET");
 			return;
 		}
 
 		const tx = await processJoinGameInstructions(
 			wallet.adapter.publicKey,
-			joinInstructions
+			joinRequests.map((req) => req.tx)
 		);
 
 		const signedTx = await signTransaction(tx);
@@ -110,8 +120,18 @@ export const AdminLobby: React.FC = () => {
 			return;
 		}
 
-		setAdmittedPlayersCount(admittedPlayersCount + joinInstructions.length);
-		setJoinInstructions([]); // Empty the array
+		joinRequests.forEach((req) => {
+			socketSend({
+				content: AdminSocketResponse.ADMITTED,
+				recipient: req.username,
+				role: "admin",
+				sender: state.gameCode,
+				type: "admin_message",
+			});
+		});
+
+		setAdmittedPlayersCount(admittedPlayersCount + joinRequests.length);
+		setJoinRequests([]); // Empty the array
 	};
 
 	const handleStartGame = async () => {
@@ -127,14 +147,14 @@ export const AdminLobby: React.FC = () => {
 			return;
 		}
 
-		// 1. Fetch players list
-		const players = await fetchAllPlayerAccounts();
+		// 1. Fetch players accounts
+		const playerAccounts = await fetchAllPlayerAccounts();
 
 		// 2. Update round seed & 3. Start round
 		const tx = await startRound(
-			players.map((p) => p.publicKey),
-			wallet.adapter.publicKey,
-			gameAccountData.address
+			playerAccounts.map((p) => p.publicKey),
+			gameAccountData.address,
+			wallet.adapter.publicKey
 		);
 		const signedTx = await signTransaction(tx);
 		const signature = await connection.sendRawTransaction(
@@ -147,19 +167,19 @@ export const AdminLobby: React.FC = () => {
 			signature: signature,
 		});
 
-		// 4. Broadcast to players
-		players.forEach((p) => {
-			socket.send({
+		// 4. Broadcast to player accounts
+		playerAccounts.forEach((p) => {
+			socketSend({
 				content: AdminSocketResponse.ROUND_STARTED,
 				recipient: p.account.username,
 				role: "admin",
-				sender: gameCode,
+				sender: state.gameCode,
 				type: "admin_message",
 			});
 		});
 
 		// 5. Navigate to next page
-		navigate("/admin/round", { state: { gameCode, socket } });
+		navigate("/admin/round", { state });
 	};
 
 	return (
@@ -222,7 +242,7 @@ export const AdminLobby: React.FC = () => {
 							<div className="flex items-center gap-3 mb-4 pb-4 border-b-2 border-green-500">
 								<Users className="w-6 h-6" />
 								<h2 className="text-2xl uppercase">
-									CONNECTED PLAYERS [{players.length}]
+									ADMITTED PLAYERS [{admittedPlayersCount}]
 								</h2>
 							</div>
 
@@ -260,19 +280,19 @@ export const AdminLobby: React.FC = () => {
 						<div className="text-center">
 							<RetroButton
 								onClick={
-									joinInstructions.length > 0
+									joinRequests.length > 0
 										? handleApproveJoinRequests
 										: handleStartGame
 								}
 								disabled={
 									admittedPlayersCount < 2 &&
-									joinInstructions.length < 2
+									joinRequests.length < 2
 								}
 								variant="primary"
 								className="text-2xl px-12 py-4"
 							>
-								{joinInstructions.length > 0
-									? `ADMIT PLAYERS (${joinInstructions.length})`
+								{joinRequests.length > 0
+									? `ADMIT PLAYERS (${joinRequests.length})`
 									: admittedPlayersCount < 2
 									? "WAITING FOR PLAYERS..."
 									: `START GAME`}

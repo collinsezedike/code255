@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Terminal } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
-import {
-	GAMECODE_MAX_LENGTH,
-	NICKNAME_MAX_LENGTH as USERNAME_MAX_LENGTH,
-} from "../lib/config";
-import { fetchGameAccountData, joinGame } from "../lib/program_instructions";
 import { AdminSocketResponse } from "../lib/types";
-import { createSocket } from "../lib/socket";
+import { GAMECODE_MAX_LENGTH, USERNAME_MAX_LENGTH } from "../lib/config";
+import { fetchGameAccountData, joinGame } from "../lib/program_instructions";
 
 export const PlayerJoin: React.FC = () => {
 	const navigate = useNavigate();
+	const { socketConnect, socketMessages, socketSend } = useSocket();
 
 	const [formattedCode, setFormattedCode] = useState("");
 	const [gameCode, setGameCode] = useState("");
@@ -20,6 +18,26 @@ export const PlayerJoin: React.FC = () => {
 	const [error, setError] = useState("");
 	const [isJoining, setIsJoining] = useState(false);
 	const [isAdmitted, setIsAdmitted] = useState(false);
+
+	useEffect(() => {
+		if (socketMessages.length === 0) return;
+		const latestMessage = socketMessages[socketMessages.length - 1];
+
+		if (
+			latestMessage.role == "admin" &&
+			latestMessage.sender == gameCode &&
+			latestMessage.recipient == username
+		) {
+			if (latestMessage.content == AdminSocketResponse.ADMITTED) {
+				setIsJoining(false);
+				setIsAdmitted(true);
+			}
+
+			if (latestMessage.content == AdminSocketResponse.ROUND_STARTED) {
+				navigate("/gameplay");
+			}
+		}
+	}, [socketMessages, navigate, setIsJoining, setIsAdmitted]);
 
 	const handleGameCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const rawValue = e.target.value;
@@ -61,51 +79,16 @@ export const PlayerJoin: React.FC = () => {
 			gameAccountData.admin
 		);
 
-		const socket = createSocket("player", username);
+		socketConnect("player", username);
 
-		socket.connect();
+		await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait a while for the socket to be ready
 
-		// Wait up to 5 seconds, checking every 50ms
-		for (let i = 0; i < 100; i++) {
-			if (socket.isConnected) break;
-			await new Promise((resolve) => setTimeout(resolve, 50));
-		}
-
-		if (!socket.isConnected) {
-			setError("UNABLE TO ESTABLISH SOCKET CONNECTION");
-			setIsJoining(false);
-			return;
-		}
-
-		// Send the txHash to the admin to sign
-		socket.send({
+		socketSend({
 			role: "player",
 			sender: username,
-			recipient: "admin",
+			recipient: gameCode,
 			type: "player_message",
 			content: Buffer.from(tx.serialize()).toString("base64"),
-		});
-
-		socket.onMessage((msg) => {
-			console.log(msg);
-			if (
-				msg.role == "admin" &&
-				msg.sender == gameCode &&
-				msg.recipient == username &&
-				msg.content == AdminSocketResponse.ADMITTED
-			) {
-				setIsJoining(false);
-				setIsAdmitted(true);
-			}
-
-			if (
-				msg.role == "admin" &&
-				msg.sender == gameCode &&
-				msg.recipient == username &&
-				msg.content == AdminSocketResponse.ROUND_STARTED
-			) {
-				navigate("/gameplay");
-			}
 		});
 	};
 

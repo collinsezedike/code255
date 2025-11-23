@@ -3,17 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Terminal } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
 import { RetroButton } from "../components/RetroButton";
 import { RetroCard } from "../components/RetroCard";
 import { createGame } from "../lib/program_instructions";
 import { generateGameCode } from "../lib/util";
-import { createSocket } from "../lib/socket";
 
 export const AdminCreate: React.FC = () => {
 	const { setVisible } = useWalletModal();
 	const { wallet, signTransaction } = useWallet();
 	const { connection } = useConnection();
 	const navigate = useNavigate();
+	const { socketConnect } = useSocket();
 
 	const [isCreating, setIsCreating] = useState(false);
 	const [error, setError] = useState("");
@@ -40,25 +41,14 @@ export const AdminCreate: React.FC = () => {
 
 		const gameCode = generateGameCode();
 
-		const socket = createSocket("admin", gameCode);
-		socket.connect();
-
-		for (let i = 0; i < 100; i++) {
-			if (socket.isConnected) break;
-			await new Promise((resolve) => setTimeout(resolve, 50));
-		}
-
-		if (!socket.isConnected) {
-			setError("UNABLE TO ESTABLISH SOCKET CONNECTION");
-			setIsCreating(false);
-			return;
-		}
+		socketConnect("admin", gameCode);
 
 		const tx = await createGame(gameCode, wallet.adapter.publicKey);
 		const signedTx = await signTransaction(tx);
 		const signature = await connection.sendRawTransaction(
 			signedTx.serialize()
 		);
+
 		const latestBlockhash = await connection.getLatestBlockhash();
 		await connection.confirmTransaction({
 			blockhash: latestBlockhash.blockhash,
@@ -66,7 +56,7 @@ export const AdminCreate: React.FC = () => {
 			signature: signature,
 		});
 
-		navigate("/admin/lobby", { state: { gameCode, socket } });
+		navigate("/admin/lobby", { state: { gameCode } });
 	};
 
 	if (isCreating) {
